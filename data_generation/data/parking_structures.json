@@ -1,0 +1,16 @@
+[
+    {
+        "name": "Park_001",
+        "location": {
+            "latitude": 40.755324,
+            "longitude": -73.705025
+        }
+    },
+    {
+        "name": "Park_002",
+        "location": {
+            "latitude": 40.483896,
+            "longitude": -73.634169
+        }
+    }
+]
