@@ -1,8 +1,5 @@
-version: '3.8'
 
-networks:
-  parking-net:
-    driver: bridge
+
 
 services:
   mosquitto:
@@ -12,50 +9,53 @@ services:
       - "1883:1883"
     volumes:
       - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
-    networks:
-      - parking-net
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+
 
   mongodb:
     image: mongo:latest
     container_name: mongodb
     ports:
-      - "27017:27017" 
-    networks:
-      - parking-net
+      - "27017:27017"
+
 
   postgres:
     image: postgres
     container_name: postgres
     ports:
-      - "5432:5432"  
+      - "5432:5432"
     environment:
       POSTGRES_USER: your_user
       POSTGRES_PASSWORD: your_password
       POSTGRES_DB: your_db
     volumes:
       - postgres-data:/var/lib/postgresql/data
-    networks:
-      - parking-net
+
 
   spark:
-    image: bitnami/spark:latest
+    build: spark_streaming
     container_name: spark
     ports:
-      - "8080:8080" 
-      - "7077:7077"  
+      - "8080:8080"
+      - "7077:7077"
     depends_on:
       - mosquitto
 
-  flask:
-    build:
-      context: ./flask-app
-    container_name: flask-app
-    ports:
-      - "5000:5000"  
-    depends_on:
-      - postgres
-      - mongodb
-      - mosquitto
-  networks:
-      - parking-net
+#  flask:
+#    build:
+#      context: ./flask-app
+#    container_name: flask-app
+#    ports:
+#      - "5000:5000"
+#    depends_on:
+#      - postgres
+#      - mongodb
+#      - mosquitto
 
+
+volumes:
+  postgres-data:
+    driver: local
+
+#flask is for the moment commented out
