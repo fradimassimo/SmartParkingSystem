@@ -19,6 +19,15 @@ services:
     ports:
       - "27017:27017"
 
+  mongo-populate:
+    build:
+      context: .
+      dockerfile: ./mongo/Dockerfile
+    volumes:
+      - ./data_generation:/app/data_generation
+      - ./mongo/_annotations.coco.json:/app/mongo/_annotations.coco.json
+    depends_on:
+      - mongodb
 
   postgres:
     image: postgres

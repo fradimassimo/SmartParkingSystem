@@ -1,7 +1,6 @@
 import json
 import random
 from datetime import datetime, timedelta
-import utils
 
 def read_parking_lots_from_json(input_file: str):
     """
