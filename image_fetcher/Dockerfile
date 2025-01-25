@@ -8,6 +8,7 @@ COPY ./image_fetcher/requirements.txt .
 COPY ./parking_detection/models /app/parking_detection/models
 COPY ./parking_detection/utils /app/parking_detection/utils
 
+RUN pip install --no-cache-dir Pillow piexif
 RUN pip install --no-cache-dir -r requirements.txt
 
 ENV PYTHONPATH=/app

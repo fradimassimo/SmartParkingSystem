@@ -41,7 +41,6 @@ def on_log(client, userdata, level, buf):
 
 
 def process_and_publish_data(t):
-
     try:
         # Open the JSON file and load data
         with open('1766_sensors_data.json', 'r', encoding='utf-8') as file:

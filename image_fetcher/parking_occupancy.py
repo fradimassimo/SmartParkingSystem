@@ -4,7 +4,8 @@ from parking_detection.utils import transforms
 # from parking_detection.utils import visualize as vis 
 import torchvision
 from pymongo import MongoClient
-import datetime
+import time
+from datetime import datetime
 
 def get_model():
     model = RCNN()
@@ -20,13 +21,9 @@ def get_model():
 
 def standardize_bboxes(segmentation, image_width, image_height):
     bboxes = []
-
     for bbox in segmentation:
-        normalized_bbox = [
-            coord / image_width if i % 2 == 0 else coord / image_height
-            for i, coord in enumerate(bbox)
-        ]
-        bboxes.append(normalized_bbox)
+        standardized_bbox = [(x / image_width, y / image_height) for x, y in zip(bbox[0][0::2], bbox[0][1::2])]
+        bboxes.append(standardized_bbox)
 
     # Convert to torch tensor
     bboxes_tensor = torch.tensor(bboxes, dtype=torch.float32)
@@ -55,8 +52,9 @@ def detect_parking_image(image_path, model, parking_id):
 
 def detect_parking_folder(folder_path, parking_id, model):
     parking_counts = []
+
     for root, _, files in os.walk(folder_path):
-        for i, file in enumerate(files):
+        for file in files:
             if file.endswith(('.jpg', '.jpeg', '.png', '.JPG', '.JPEG', '.PNG')):
                 image_path = os.path.join(root, file)
                 occupancy = detect_parking_image(image_path, model, parking_id)
@@ -73,7 +71,7 @@ def detect_parking_folder(folder_path, parking_id, model):
                 parking_counts.append(parking_dict)
 
     return parking_counts
-    
+
 
 def get_bounding_boxes(parking_id):
     """Fetch bounding boxes (annotations) from MongoDB using parking_id."""
@@ -96,31 +94,50 @@ def get_bounding_boxes(parking_id):
         return []
     
 
+
 def get_image_timestamp(image_path):
-    """Get the timestamp (date created) of an image."""
+
     try:
-        # Get the modification time of the file
-        timestamp = os.path.getmtime(image_path)
-        # Convert to a readable format (e.g., ISO 8601)
-        readable_timestamp = datetime.utcfromtimestamp(timestamp).isoformat()
-        return readable_timestamp
+        # Extract the file name without extension
+        file_name = os.path.basename(image_path)
+        name_without_extension = os.path.splitext(file_name)[0]
+
+        try:
+            timestamp = datetime.strptime(name_without_extension[:19], "%Y-%m-%d_%H_%M_%S")
+            return timestamp.isoformat()  # Return in ISO 8601 format
+        
+        except ValueError:
+            # If the name does not match the timestamp pattern, use the file's metadata
+            pass
+
+        date_creation = time.ctime(os.path.getmtime(image_path))
+        date_creation = datetime.strptime(date_creation, "%a %b %d %H:%M:%S %Y")
+        date_creation = date_creation.strftime("%Y-%m-%dT%H:%M:%SZ")
+
     except Exception as e:
         print(f"Error fetching timestamp for {image_path}: {e}")
         return None
+
+    return date_creation
+
     
 def main():
-    # Define paths and parameters
-    folder_path = "/app/images"  # Docker-mounted volume path for images
-    parking_id = 8  # Example parking ID
-    model = get_model()  # Load the model
+    folder_path = "/app/images"
+    model = get_model()
 
-    # Process images in the folder
-    parking_data = detect_parking_folder(folder_path, parking_id, model)
+    for folder_name in os.listdir(folder_path):
+        # check every folder (should be in the name parkingXXX, with XXX being the parking id)
+        if folder_name.startswith("parking") and folder_name[7:].isdigit():
+            parking_id = int(folder_name[7:]) 
+            new_folder_path = os.path.join(folder_path, folder_name)
 
-    # Print or handle the processed data
-    print("Processed parking data:")
-    for entry in parking_data:
-        print(entry)
+            print(f"Processing folder: {folder_name} (Parking ID: {parking_id})")
+            parking_data = detect_parking_folder(new_folder_path, parking_id, model)
+            print("Processed parking data:")
+            for entry in parking_data:
+                print(entry)
+
+    
 
 # Entry point
 if __name__ == "__main__":
