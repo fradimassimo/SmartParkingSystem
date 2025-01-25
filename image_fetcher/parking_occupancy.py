@@ -17,14 +17,30 @@ def get_model():
     except Exception as e:
         print(f"Error loading model weights: {e}")
         return None
-    
-    
+
+def standardize_bboxes(segmentation, image_width, image_height):
+    bboxes = []
+
+    for bbox in segmentation:
+        normalized_bbox = [
+            coord / image_width if i % 2 == 0 else coord / image_height
+            for i, coord in enumerate(bbox)
+        ]
+        bboxes.append(normalized_bbox)
+
+    # Convert to torch tensor
+    bboxes_tensor = torch.tensor(bboxes, dtype=torch.float32)
+
+    return bboxes_tensor
 
 def detect_parking_image(image_path, model, parking_id):
     image = torchvision.io.read_image(image_path)
 
     # here goes the import
     rois = get_bounding_boxes(parking_id)
+
+    image_height, image_width = image.shape[1], image.shape[2]
+    rois = standardize_bboxes(rois, image_width, image_height)
 
     image = transforms.preprocess(image)
 
@@ -39,7 +55,6 @@ def detect_parking_image(image_path, model, parking_id):
 
 def detect_parking_folder(folder_path, parking_id, model):
     parking_counts = []
-    print(f"Files in folder {folder_path}: {os.listdir(folder_path)}")
     for root, _, files in os.walk(folder_path):
         for i, file in enumerate(files):
             if file.endswith(('.jpg', '.jpeg', '.png', '.JPG', '.JPEG', '.PNG')):
@@ -73,6 +88,7 @@ def get_bounding_boxes(parking_id):
 
         # Extract bounding boxes (list of bboxes)
         bounding_boxes = [annotation["segmentation"] for annotation in annotations]
+
         return bounding_boxes
 
     except Exception as e:

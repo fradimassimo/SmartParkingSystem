@@ -34,7 +34,7 @@ services:
       context: .
       dockerfile: ./image_fetcher/Dockerfile
     volumes:
-      - ./local_images:/app/images  
+      - ./images:/app/images  
     depends_on:
       - mongodb
 
