@@ -7,7 +7,7 @@ COPY mongo/requirements.txt .
 COPY data_generation /app/data_generation
 COPY mongo/_annotations.coco.json /app/mongo/_annotations.coco.json
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
 CMD ["python", "populate_mongo.py"]
 

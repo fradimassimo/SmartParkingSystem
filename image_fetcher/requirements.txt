@@ -1,0 +1,5 @@
+pymongo
+pillow
+torch
+torchvision
+requests
