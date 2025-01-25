@@ -13,7 +13,7 @@ NB) do not run from python file (as long as you just want to test it locally)
 """
 import signal
 
-from fontTools.merge.util import current_time
+
 from pyspark.sql import SparkSession
 import paho.mqtt.client as mqtt
 import json
@@ -21,6 +21,8 @@ from datetime import datetime, timezone
 import time
 import logging
 import random
+
+from spark_streaming.utils import aggregator
 
 spark = SparkSession.builder.appName("SparkStreamingApp").getOrCreate()
 
@@ -39,30 +41,29 @@ def on_publish(client, userdata, mid):
 def on_log(client, userdata, level, buf):
     logger.info(f"Log: {buf}")
 
-
-def process_and_publish_data(t):
+def load_json_file(file_path):
     try:
-        # Open the JSON file and load data
-        with open('1766_sensors_data.json', 'r', encoding='utf-8') as file:
-            lots = json.load(file)
+        with open(file_path, 'r', encoding='utf-8') as file:
+            return json.load(file)
     except FileNotFoundError:
-        logger.error("File '1766_sensors_data.json' not found!")
-        return
+        logger.error(f"File '{file_path}' not found!")
+        return []
     except json.JSONDecodeError:
-        logger.error("Error decoding JSON file! Ensure it is correctly formatted.")
-        return
+        logger.error(f"Error decoding JSON file '{file_path}'! Ensure it is correctly formatted.")
+        return []
 
-    current_time = t
+def process_and_publish_data(tempo, lots, structure):
 
+    current_time = tempo
+    record = []
     for spot in lots:
-        #aggiungi timestemp
         park_flag = random.choice([0, 1])
         # if the sensor malfunctions, then the spot is marked automatically as occupied
         battery_percent = 100 if random.random() > 0.005 else 0
         if battery_percent == 0:
             park_flag = 0
 
-        record = {
+        single_record = {
             "device_id": spot["deviceid"],
             "metadata_time": current_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
             "location": spot["location"],
@@ -72,10 +73,13 @@ def process_and_publish_data(t):
             "counter": random.randint(1, 1000),
             "active": 1
         }
+        record.append(single_record)
+    aggregated = aggregator(structure, record)
 
+    for lot in aggregated:
         try:
-            client.publish("closed_parking/data", json.dumps(record))
-            logger.info(f"Published: {record}")
+            client.publish("closed_parking/data", json.dumps(lot))
+            logger.info(f"Published: {lot}")
         except Exception as error:
             logger.error(f"Error publishing to MQTT broker: {error}")
 
@@ -90,8 +94,14 @@ if __name__ == "__main__":
     client.connect(mqtt_broker, 1883, 60)
     client.loop_start()
 
+    sensors = load_json_file('1766_sensors_data.json')
+    str = load_json_file('closed_parking_structures.json')
+    if not sensors or not str:
+        logger.error("Critical files are missing or invalid. Exiting.")
+        exit(1)
+
     while True:
         t = datetime.now(timezone.utc)
-        process_and_publish_data(t)
+        process_and_publish_data(t, sensors, str)
         logger.info("Sleeping for 20 seconds")
         time.sleep(20)

@@ -1,7 +1,8 @@
 
+
  - Signal handler ?
- - Aggregazione per parcheggio chiuso
- - Salvataggio su postgres dei parcheggi consumati in "streaming", non ogni 20 sec ma ogni 15 min.
+ - Aggregazione per parcheggio chiuso ogni 20 secondi e mostra in dashboard (done)
+ - Salvataggio su postgres dei parcheggi consumati in "streaming", non ogni 20 sec ma ogni 15 min. (dai)
 
 
 Sono 15 parcheggi al chiuso, Trento si trova all'interno delle sottostanti coordinate.
