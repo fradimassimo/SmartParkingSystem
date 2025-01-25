@@ -1,6 +1,7 @@
 import json
 import random
-from datetime import datetime, timedelta
+from datetime import timedelta
+
 
 def read_parking_lots_from_json(input_file: str):
     """
@@ -80,7 +81,7 @@ def create_parking_dataset(input_file, output_file, interval_minutes: int, time_
     all_parkings = []
 
     for struct in structures:
-        all_parkings.append(generate_parking_structure(struct, random.randint(50,600)))
+        all_parkings.append(generate_parking_structure(struct, random.randint(50,200)))
         
     all_data = []
     for parking_set in all_parkings:
@@ -89,3 +90,7 @@ def create_parking_dataset(input_file, output_file, interval_minutes: int, time_
 
     with open(output_file, 'w') as file:
         json.dump(all_data, file, indent=4)
+
+
+
+

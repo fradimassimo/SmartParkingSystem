@@ -1,24 +1,23 @@
 """"
-Let's assume first that 3 different 'closed' parking lots publish MQTT messages (P1, P2, P3) with the following format.
+How it works:
+Spots sensors inside {Park_001, ..., Park_015}: Periodically publish MQTT messages on topic closed_parking/data.
+Spark Streaming manage this flux of data from topic closed_parking/data.
+It aggregates the spots per Park_0**
+It generates alerts if parking availability is under a certain threshold.
+It save data about spots every 15 minutes in postgres DB.
 
-{
-    "parking_id": "P1",
-    "available_spots": 25
-}
-How should work:
-Sensors connected to {P1, P2, P3}: Periodically publish MQTT messages on topic closed_parking/data.
-Spark Streaming process data from topic closed_parking/data.
-It generates alerts if parking availability is under a certain threshold and computes some metrics.
-There is a dumb script to simulate random data.
 [STARTING THE NET]
 docker-compose down --remove-orphans
 docker-compose up --build
 NB) do not run from python file (as long as you just want to test it locally)
 """
+import signal
 
+from fontTools.merge.util import current_time
 from pyspark.sql import SparkSession
 import paho.mqtt.client as mqtt
 import json
+from datetime import datetime, timezone
 import time
 import logging
 import random
@@ -40,35 +39,44 @@ def on_publish(client, userdata, mid):
 def on_log(client, userdata, level, buf):
     logger.info(f"Log: {buf}")
 
-def process_and_publish_data():
 
-    with open('closed_lots.json', 'r', encoding='utf-8') as file:
-        lots = json.load(file)
+def process_and_publish_data(t):
 
-    for i in range(200):
-        lot = random.choice(lots)
-        parking_id = lot["ID"]
-        capacity = lot["capacity"]
-        availability = int(random.uniform(0,capacity))
-        if (availability/capacity) * 100 < 5:
-            alert = 1
-        else:
-            alert = 0
+    try:
+        # Open the JSON file and load data
+        with open('1766_sensors_data.json', 'r', encoding='utf-8') as file:
+            lots = json.load(file)
+    except FileNotFoundError:
+        logger.error("File '1766_sensors_data.json' not found!")
+        return
+    except json.JSONDecodeError:
+        logger.error("Error decoding JSON file! Ensure it is correctly formatted.")
+        return
+
+    current_time = t
+
+    for spot in lots:
+        #aggiungi timestemp
+        park_flag = random.choice([0, 1])
+        # if the sensor malfunctions, then the spot is marked automatically as occupied
+        battery_percent = 100 if random.random() > 0.005 else 0
+        if battery_percent == 0:
+            park_flag = 0
+
+        record = {
+            "device_id": spot["deviceid"],
+            "metadata_time": current_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "location": spot["location"],
+            "payload_fields_park_flag": park_flag,
+            "payload_fields_battery_percent": battery_percent,
+            "payload_fields_low_voltage": "False",
+            "counter": random.randint(1, 1000),
+            "active": 1
+        }
 
         try:
-
-            message = {
-                "parking_id": parking_id,
-                "available_spots": availability,
-                "alert": alert
-            }
-
-            client.publish("closed_parking/data", json.dumps(message))
-            logger.info(f"Published: {message}")
-
-        except ConnectionRefusedError:
-            logger.error("MQTT broker connection was refused.")
-
+            client.publish("closed_parking/data", json.dumps(record))
+            logger.info(f"Published: {record}")
         except Exception as error:
             logger.error(f"Error publishing to MQTT broker: {error}")
 
@@ -84,6 +92,7 @@ if __name__ == "__main__":
     client.loop_start()
 
     while True:
-        process_and_publish_data()
+        t = datetime.now(timezone.utc)
+        process_and_publish_data(t)
         logger.info("Sleeping for 20 seconds")
         time.sleep(20)

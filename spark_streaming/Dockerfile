@@ -5,7 +5,8 @@ WORKDIR /app
 # Copy the PySpark application to the container
 COPY spark_streaming.py /app/spark_streaming.py
 
-COPY closed_lots.json /app/closed_lots.json
+#si potrebbe cancellare
+COPY 1766_sensors_data.json /app/1766_sensors_data.json
 
 RUN pip3 install paho-mqtt
 
