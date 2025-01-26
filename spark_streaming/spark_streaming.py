@@ -1,7 +1,7 @@
 """"
 How it works:
 Generation of data simulating Spots sensors inside {Park_001, ..., Park_015}.
-Local aggregation based on coordinates (sensors having same coordinates come from same Park_0**).
+Local aggregation, based on coordinates (sensors having same coordinates come from same Park_0**).
 Pub of MQTT messages on topic closed_parking/data in order to consume data in real time on dashboard.
 Saving every 15 minutes in a postgres DB the last snapshot to accumulate data for more accurate predictions.
 
