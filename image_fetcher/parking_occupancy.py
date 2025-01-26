@@ -77,7 +77,7 @@ def get_bounding_boxes(parking_id):
     """Fetch bounding boxes (annotations) from MongoDB using parking_id."""
     try:
         # Connect to MongoDB (Docker container uses "mongodb" as the hostname)
-        client = MongoClient("mongodb://mongodb:27017/")
+        client = MongoClient("mongodb://admin:root@mongodb:27017/")
         db = client.parking_management  # Database name
         annotations_collection = db.annotations  # Collection name
 

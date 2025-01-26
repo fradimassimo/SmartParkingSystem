@@ -2,10 +2,9 @@ from pymongo import MongoClient
 import json
 from data_generation.data_creation import create_parking_lots as cp
 
-client = MongoClient("mongodb://mongodb:27017/")
+client = MongoClient("mongodb://admin:root@mongodb:27017/")
 db = client.parking_management
 
-images_collection = db.images
 annotations_collection = db.annotations
 parkings_collection = db.parkings
 
@@ -19,12 +18,17 @@ bounds = ((lat_min, lat_max), (lon_min, lon_max))
 num_parkings = 120
 parking_data = cp.create_street_parking(bounds, num_parkings)
 
-# insert the parkings into MongoDB
-try:
-    parkings_collection.insert_many(parking_data)
+parkings_collection.create_index("name", unique=True)
 
-except Exception as e:
-    print(f"An error occurred while inserting parkings' data: {e}")
+# Check if parkings already exist
+if parkings_collection.count_documents({}) == 0:
+    try:
+        # insert the parkings into MongoDB
+        parkings_collection.insert_many(parking_data)
+        print("Parking data inserted successfully!")
+
+    except Exception as e:
+        print(f"An error occurred while inserting parkings' data: {e}")
 
 # import annotations for each parking (note that original file has 418k entries, 
 # we will only extract a selected few as most are redundant), code is NOT generalised
@@ -40,9 +44,10 @@ try:
             "area": annotation["area"]
         }
         # insert each annotation in MongoDB
+        annotations_collection.create_index("annotation_id", unique=True)
         annotations_collection.insert_one(annotation_doc)
 
-    print("Data inserted successfully!")
+    print("Annotation Data inserted successfully!")
 
 except Exception as e:
     print(f"An error occurred while inserting annotations' data: {e}")

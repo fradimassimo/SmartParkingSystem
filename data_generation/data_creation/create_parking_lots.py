@@ -56,15 +56,16 @@ def create_street_parking(bounds, num_locations):
     parking_lots = []
     for i, coord in enumerate(coordinates, start=1):
         parking_lot = {
+            "parking_id": i,
             "name": f"Street_{i:03d}",
             "location": {
                 "latitude": coord[0],
                 "longitude": coord[1]
             },
-            "opening_hours": f"{random.choice([0,7,8])}:00-{random.choice([18,20,21,22,24])}:00",
+            "paying_hours": f"{random.choice([0,7,8])}:00-{random.choice([18,20,21,22,24])}:00",
             "price_per_hour": random.choice([0, 0.8, 1.0, 1.5, 2.0, 2.5])
         }
         parking_lots.append(parking_lot)
-        print(parking_lot)
+        # print(parking_lot)
 
     return parking_lots
