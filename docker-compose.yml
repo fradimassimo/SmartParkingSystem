@@ -52,13 +52,13 @@ services:
     volumes:
       - ./data/postgres:/var/lib/postgresql/data
 
-    postgres-check:
-      build:
-        context: .
-        dockerfile: ./postgres/Dockerfile
-      depends_on:
-        - postgres
-      environment:
+  postgres-check:
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile
+    depends_on:
+      - postgres
+    environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: root
       POSTGRES_DB: smart-parking
@@ -73,16 +73,16 @@ services:
     depends_on:
       - mosquitto
 
-  flask:
-    build:
-      context: ./flask-app
-    container_name: flask-app
-    ports:
-      - "5000:5000"
-    depends_on:
-      - postgres
-      - mongodb
-      - mosquitto
+#  flask:
+#    build:
+#      context: ./flask-app
+#    container_name: flask-app
+#    ports:
+#      - "5000:5000"
+#    depends_on:
+#      - postgres
+#      - mongodb
+#      - mosquitto
 
 
 #flask is for the moment commented out

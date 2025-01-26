@@ -2,7 +2,7 @@ from pymongo import MongoClient
 import json
 from data_generation.data_creation import create_parking_lots as cp
 
-client = MongoClient("mongodb://admin:root@mongodb:27017/")
+client = MongoClient("mongodb://mongodb:27017/")
 db = client.parking_management
 
 annotations_collection = db.annotations
