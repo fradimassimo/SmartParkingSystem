@@ -29,10 +29,10 @@ def generate_fake_parking_data(start_time, end_time, time_interval, parking_ids)
 # load it into PostgreSQL
 # PostgreSQL connection (reuse the same connection from above)
 conn = psycopg2.connect(
-    dbname="your_db",
-    user="your_user",
-    password="your_password",
-    host="localhost",
+    dbname="smart-parking",
+    user="admin",
+    password="root",
+    host="postgres",
     port="5432"
 )
 cur = conn.cursor()
@@ -65,6 +65,9 @@ try:
                 record["vacancy"]
             )
         )
+    
+    print("Occupancy data successfully inserted!")
+    
 except Exception as e:
     print(f"An error occurred while inserting occupancy data: {e}")
 

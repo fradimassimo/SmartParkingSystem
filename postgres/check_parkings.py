@@ -2,7 +2,7 @@ from pymongo import MongoClient
 import psycopg2
 
 # first we fetch data from mongo
-mongo_client = MongoClient("mongodb://localhost:27017/")
+mongo_client = MongoClient("mongodb://mongodb:27017/")
 mongo_db = mongo_client["parking_management"] 
 mongo_parkings = mongo_db["parkings"]
 
@@ -15,22 +15,22 @@ pg_conn = psycopg2.connect(
     dbname="smart-parking",
     user="admin",
     password="root",
-    host="localhost",
+    host="postgres",
     port="5432"
 )
 pg_cur = pg_conn.cursor()
 
  # we periodically check if the data in PostgreSQL is up-to-date with the data in MongoDB (i.e. if new entries have been added)
-for parking in mongo_parkings:
-        pg_cur.execute("SELECT * FROM parking WHERE parking_id = %s", (parking["parking_id"],))
+for parking in parking_data:
+        pg_cur.execute("SELECT * FROM parkings WHERE parking_id = %s", (str(parking["parking_id"]),))
         result = pg_cur.fetchone()
 
         if not result: # insert parking
             try:
                 pg_cur.execute(
                     """
-                    INSERT INTO parking (parking_id, name, latitude, longitude, paying_hours, price_per_hour)
-                    VALUES (%s, %s, %d, %d, %s, %d, %s)
+                    INSERT INTO parkings (parking_id, name, latitude, longitude, paying_hours, price_per_hour, parking_type)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
                     """,
                     (
                         parking["parking_id"],

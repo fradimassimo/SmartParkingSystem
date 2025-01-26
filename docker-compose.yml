@@ -53,11 +53,13 @@ services:
       - ./data/postgres:/var/lib/postgresql/data
 
   postgres-check:
+    container_name: postgres-check
     build:
       context: ./postgres
       dockerfile: Dockerfile
     depends_on:
       - postgres
+      - mongodb
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: root
