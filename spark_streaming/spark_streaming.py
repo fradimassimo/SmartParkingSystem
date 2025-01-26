@@ -1,15 +1,19 @@
 """"
 How it works:
-Spots sensors inside {Park_001, ..., Park_015}: Periodically publish MQTT messages on topic closed_parking/data.
-Spark Streaming manage this flux of data from topic closed_parking/data.
-It aggregates the spots per Park_0**
-It generates alerts if parking availability is under a certain threshold.
-It save data about spots every 15 minutes in postgres DB.
+Generation of data simulating Spots sensors inside {Park_001, ..., Park_015}.
+Local aggregation based on coordinates (sensors having same coordinates come from same Park_0**).
+Pub of MQTT messages on topic closed_parking/data in order to consume data in real time on dashboard.
+Saving every 15 minutes in a postgres DB the last snapshot to accumulate data for more accurate predictions.
+
+Spark Streaming could have managed a flux of true realtime data
+I.e. reding a file with a relative path from a remote location,
+such as HFS or S3 and performs data aggregation and processing in an efficient and highly scalable way.
+
 
 [STARTING THE NET]
 docker-compose down --remove-orphans
 docker-compose up --build
-NB) do not run from python file (as long as you just want to test it locally)
+NB, do not run from python file (as long as you just want to test it locally)
 """
 import signal
 
@@ -53,36 +57,44 @@ def load_json_file(file_path):
         return []
 
 def process_and_publish_data(tempo, lots, structure):
+    try:
+        """
+        schema = ...
+        df = spark.read.schema(schema).json("/app/live_data.json") 
+        df.createOrReplaceTempView("closed_lots_data")
+        processed_data = ...
+        """
 
-    current_time = tempo
-    record = []
-    for spot in lots:
-        park_flag = random.choice([0, 1])
-        # if the sensor malfunctions, then the spot is marked automatically as occupied
-        battery_percent = 100 if random.random() > 0.005 else 0
-        if battery_percent == 0:
-            park_flag = 0
+        current_time = tempo
+        record = []
+        for spot in lots:
+            park_flag = random.choice([0, 1])
+            # if the sensor malfunctions, then the spot is marked automatically as occupied
+            battery_percent = 100 if random.random() > 0.005 else 0
+            if battery_percent == 0:
+                park_flag = 0
 
-        single_record = {
-            "device_id": spot["deviceid"],
-            "metadata_time": current_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "location": spot["location"],
-            "payload_fields_park_flag": park_flag,
-            "payload_fields_battery_percent": battery_percent,
-            "payload_fields_low_voltage": "False",
-            "counter": random.randint(1, 1000),
-            "active": 1
-        }
-        record.append(single_record)
-    aggregated = aggregator(structure, record)
+            single_record = {
+                "device_id": spot["deviceid"],
+                "metadata_time": current_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "location": spot["location"],
+                "payload_fields_park_flag": park_flag,
+                "payload_fields_battery_percent": battery_percent,
+                "payload_fields_low_voltage": "False",
+                "counter": random.randint(1, 1000),
+                "active": 1
+            }
+            record.append(single_record)
+        aggregated = aggregator(structure, record)
 
-    for lot in aggregated:
-        try:
-            client.publish("closed_parking/data", json.dumps(lot))
-            logger.info(f"Published: {lot}")
-        except Exception as error:
-            logger.error(f"Error publishing to MQTT broker: {error}")
-
+        for lot in aggregated:
+            try:
+                client.publish("closed_parking/data", json.dumps(lot))
+                logger.info(f"Published: {lot}")
+            except Exception as error:
+                logger.error(f"Error publishing to MQTT broker: {error}")
+    except Exception as e:
+        logger.error(f"Error processing data: {e}")
 
 if __name__ == "__main__":
     mqtt_broker = "mosquitto"
