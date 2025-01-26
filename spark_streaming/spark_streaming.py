@@ -26,9 +26,9 @@ import time
 import logging
 import random
 
-from spark_streaming.utils import aggregator
+from utils import aggregator
 
-spark = SparkSession.builder.appName("SparkStreamingApp").getOrCreate()
+#spark = SparkSession.builder.appName("SparkStreamingApp").getOrCreate()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -97,7 +97,7 @@ def process_and_publish_data(tempo, lots, structure):
         logger.error(f"Error processing data: {e}")
 
 if __name__ == "__main__":
-    mqtt_broker = "mosquitto"
+    mqtt_broker = "mosquitto" #mosquitto
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_publish = on_publish

@@ -15,10 +15,11 @@ def aggregate_by_coordinates(record):
         list: list of dictionaries, each representing a parking lot.
     """
     parking_areas = defaultdict(lambda: {"occupied": 0, "free": 0})
-
+    metadata = record[0]["metadata_time"]
     for spot in record:
         coordinates = (spot["location"]["latitude"], spot["location"]["longitude"])
         park_flag = spot["payload_fields_park_flag"]
+
 
         if park_flag == 1:  # Occupied
             parking_areas[coordinates]["occupied"] += 1
@@ -31,7 +32,8 @@ def aggregate_by_coordinates(record):
 
             "location": {"latitude":coords[0],"longitude":coords[1]},
             "occupied": counts["occupied"],
-            "free": counts["free"]
+            "free": counts["free"],
+            "metadata_time": metadata
         })
 
     return result
