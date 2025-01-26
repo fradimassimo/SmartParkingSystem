@@ -33,10 +33,3 @@ def generate_fake_parking_data(start_time, end_time, time_interval, parking_ids)
             current_time -= time_interval
 
     return data
-
-# Generate the data
-parking_data = generate_fake_parking_data()
-
-# Example: Print first 10 records
-for record in parking_data:
-    print(record)
