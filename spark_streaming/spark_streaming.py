@@ -97,16 +97,27 @@ def process_and_publish_data(tempo, lots, structure):
 
 if __name__ == "__main__":
     mqtt_broker = "mosquitto" #mosquitto
+
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_publish = on_publish
     client.on_log = on_log
 
-    client.connect(mqtt_broker, 1883, 60)
-    client.loop_start()
+    retry = 0
+    retry_timeout = 10
+    while retry < 10:
+        try:
+            client.connect(mqtt_broker, 1883, 60)
+            client.loop_start()
+            break
+        except ConnectionRefusedError as error:
+            retry += 1
+            print(f"Connection refused, retrying, attempt: {retry}")
+            time.sleep(retry_timeout)
+            continue
 
-    sensors = load_json_file('1766_sensors_data.json')
-    str = load_json_file('closed_parking_structures.json')
+    sensors = load_json_file('/app/1766_sensors_data.json')
+    str = load_json_file('/app/closed_parking_structures.json')
     if not sensors or not str:
         logger.error("Critical files are missing or invalid. Exiting.")
         exit(1)

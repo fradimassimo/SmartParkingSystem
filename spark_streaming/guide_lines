@@ -2,8 +2,11 @@
 
  - Signal handler ?
  - Aggregazione per parcheggio chiuso ogni 20 secondi e mostra in dashboard (done)
- - Salvataggio su postgres dei parcheggi consumati in "streaming", non ogni 20 sec ma ogni 15 min. (dai)
-
+ - Versione spark
+ - Salvataggio su postgres dei parcheggi consumati in "streaming", non ogni 20 sec ma ogni 15 min. (to do)
+ - Salvataggio su postgres della base close_lots_aggregated (to do)
+ - Salvataggio su postgres dei sensori from street. (to do)
+ - Migliora dockerfile (sicuro da problemi)
 
 Sono 15 parcheggi al chiuso, Trento si trova all'interno delle sottostanti coordinate.
 Quindi arbitrariamente dividiamo Trento in 5 zone -> ogni zona viene dotata di 3 parcheggi al chiuso.
@@ -35,3 +38,5 @@ Longitudine: [11.10, 11.11]
 Sono stati generati da 50 a 200 spot per ognuno dei 15 parcheggi al coperto che si trovano nelle 5 zone della città.
 Dati salvati dal 2 gennaio alle 19 al 30 gennaio 19:30 ogni 15 min.
 Vedi closed_lots_aggregated_data.json in data_generation\data.
+
+si potrebbe aggiungere la zona nei json così da facilitare il topic zona/select
