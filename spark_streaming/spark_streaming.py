@@ -15,7 +15,6 @@ docker-compose down --remove-orphans
 docker-compose up --build
 NB, do not run from python file (as long as you just want to test it locally)
 """
-import signal
 
 
 from pyspark.sql import SparkSession

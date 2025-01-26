@@ -5,7 +5,7 @@ from collections import defaultdict
 
 def aggregate_by_coordinates(record):
     """
-    aggregating data from spots sensors into closed parking lots based on locations,
+    Aggregating data from spots sensors into closed parking lots based on locations,
     showing amount of occupied and free spots per parking lot.
 
     Args:
