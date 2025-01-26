@@ -59,13 +59,13 @@ def merging(structure, aggregated_by_coords):
             good_lot_location = (good_lot["location"]["latitude"], good_lot["location"]["longitude"])
             if good_lot_location == lot_location:
                 record = {
-                    "deviceid": good_lot["name"],
+                    "parking_id": good_lot["parking_id"],
+                    "name": good_lot["name"],
                     "capacity": good_lot["capacity"],
                     "metadata_time": lot["metadata_time"],
                     "location": lot["location"],
-                    "availability": good_lot["capacity"] - lot["occupied"],
-                    "counter": random.randint(1, 1000),
-                    "active": 1
+                    "vacancy": lot["free"],
+                    "occupancy": lot["occupied"],
                 }
                 result.append(record)
                 match_found = True

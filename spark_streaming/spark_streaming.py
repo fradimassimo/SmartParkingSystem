@@ -117,7 +117,7 @@ if __name__ == "__main__":
             continue
 
     sensors = load_json_file('/app/1766_sensors_data.json')
-    str = load_json_file('/app/closed_parking_structures.json')
+    str = load_json_file('/app/corrected_closed_parking_structures.json')
     if not sensors or not str:
         logger.error("Critical files are missing or invalid. Exiting.")
         exit(1)
