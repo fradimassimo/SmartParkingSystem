@@ -1,7 +1,3 @@
-"""
-This function should aggregate streaming data coming from spots sensors into closed parking lots.
-Data coming from sensors are supposed to be stored every 15 minutes thus this function follows that frequency.
-"""
 import json
 import random
 from collections import defaultdict
@@ -16,7 +12,7 @@ def aggregate_by_coordinates(record):
         record (list): sensors data generated every 20 seconds.
 
     Returns:
-        list: list of dictionary, each representing a parking lot.
+        list: list of dictionaries, each representing a parking lot.
     """
     parking_areas = defaultdict(lambda: {"occupied": 0, "free": 0})
 
@@ -41,12 +37,17 @@ def aggregate_by_coordinates(record):
     return result
 
 
-with open('closed_parking_structures.json', 'r') as file:
-    structure = json.load(file)
-
-
-
 def merging(structure, aggregated_by_coords):
+    """
+       Merging aggregated by coordinates data with closed_parking structure.
+
+       Args:
+           structure (list): 15 closed parking lots data.
+           aggregated_by_coords (list): aggregated by coordinates data.
+
+       Returns:
+           list: list of dictionaries, each representing a closed parking lot.
+       """
     result = []
 
     for lot in aggregated_by_coords:
@@ -73,8 +74,17 @@ def merging(structure, aggregated_by_coords):
     return result
 
 def aggregator(structure, data):
+    """"
+    Combining the previous functions in this file in order to achieve a good data aggregation.
+
+     Args:
+           structure (list): 15 closed parking lots data.
+           data (list): data coming from single sensors into closed parking lots.
+
+       Returns:
+           list: list of dictionaries, each representing a closed parking lot.
+    """
     first_aggregation = aggregate_by_coordinates(data)
     result = merging(structure, first_aggregation)
     return result
 
-#counter active metadata
