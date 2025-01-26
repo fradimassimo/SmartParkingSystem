@@ -18,6 +18,8 @@ services:
     container_name: mongodb
     ports:
       - "27017:27017"
+    volumes:
+      - ./data/mongo:/data/db
 
   mongo-populate:
     build:
