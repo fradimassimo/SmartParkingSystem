@@ -75,7 +75,7 @@ services:
     depends_on:
       - mosquitto
 
-  sarima:
+  data_processor:
     build:
       context: ./data_processor
       dockerfile: Dockerfile

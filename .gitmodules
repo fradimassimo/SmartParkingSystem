@@ -1,3 +1,1 @@
-[submodule "parking_detection"]
-	path = parking_detection
-	url = https://github.com/damianozaccaron/parking-space-occupancy.git
+
