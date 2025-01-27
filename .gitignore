@@ -3,3 +3,4 @@ venv/
 data/mongo
 data/postgres
 data_processor/sarima_model.pkl
+mosquitto/data/mosquitto.db

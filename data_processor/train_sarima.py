@@ -5,7 +5,37 @@ from statsmodels.tsa.statespace.sarimax import SARIMAX
 import pickle
 import psycopg2
 
-def train_model(parking_ids: list, start_time = datetime.now(), end_time = None, festive_dates = None):
+def get_zone(lat, lon):
+    zones = {
+    "NORD": {
+        "latitude": [46.10, 46.12],
+        "longitude": [11.07, 11.14]
+    },
+    "SUD": {
+        "latitude": [46.04, 46.06],
+        "longitude": [11.07, 11.14]
+    },
+    "EST": {
+        "latitude": [46.06, 46.10],
+        "longitude": [11.11, 11.14]
+    },
+    "OVEST": {
+        "latitude": [46.06, 46.10],
+        "longitude": [11.07, 11.10]
+    },
+    "CENTRO": {
+        "latitude": [46.06, 46.10],
+        "longitude": [11.10, 11.11]
+    }
+    }
+
+    for zone, coords in zones.items():
+        lat_min, lat_max = coords["latitude"]
+        lon_min, lon_max = coords["longitude"]
+        if lat_min <= lat <= lat_max and lon_min <= lon <= lon_max:
+            return zone
+
+def train_model(start_time = datetime.now(), end_time = None, festive_dates = None):
 
     if end_time is None:
         end_time = start_time - timedelta(days=28)
@@ -27,29 +57,28 @@ def train_model(parking_ids: list, start_time = datetime.now(), end_time = None,
     df = pd.DataFrame()
 
     try:
-        for parking_id in parking_ids:
-            query = """
-                SELECT *
-                FROM occupancy_data
-                WHERE parking_id = %s
-                AND timestamp BETWEEN %s AND %s
-            """
-            df_prov = pd.read_sql(query, pg_conn, params=(parking_id, end_time, start_time))
+        query = """
+            SELECT o.*, p.latitude, p.longitude
+            FROM occupancy_data o
+            JOIN parkings p ON o.parking_id = p.parking_id
+            WHERE o.timestamp BETWEEN %s AND %s
+        """
+        df = pd.read_sql(query, pg_conn, params=(end_time, start_time))
 
-            if df_prov.empty:
-                print(f"No data found for parking_id {parking_id}. Skipping...")
-                continue
-            
-            df = pd.concat([df, df_prov])
+        if df.empty:
+            print(f"No data found")      
 
     except Exception as e:
         print(f"Error retrieving parking data: {e}")
 
-    pg_conn.close()
+    finally:
+        pg_conn.close()
 
     df.to_csv('out.csv')
 
     df['timestamp'] = pd.to_datetime(df['timestamp'])
+    df['zone'] = df.apply(lambda row: get_zone(row['latitude'], row['longitude']), axis=1)
+    df.drop(columns=['latitude', 'longitude'], inplace=True)
 
     df['total_capacity'] = df['occupancy'] + df['vacancy']
     df['relative_occupancy'] = df['occupancy'] / df['total_capacity']
@@ -60,6 +89,7 @@ def train_model(parking_ids: list, start_time = datetime.now(), end_time = None,
     df_aggregated = df.groupby(['parking_id', 'rounded_timestamp'], as_index=False).agg(
         mean_occupancy=('relative_occupancy', 'mean')  # Aggregate occupancy
     )
+    df_aggregated['zone'] = df.groupby(['parking_id', 'rounded_timestamp'])['zone'].transform('first')
     df_aggregated.rename(columns={'rounded_timestamp': 'timestamp'}, inplace=True)
 
     # Extract features
@@ -70,9 +100,10 @@ def train_model(parking_ids: list, start_time = datetime.now(), end_time = None,
     df_aggregated['is_festive'] = df_aggregated['timestamp'].dt.date.isin(pd.to_datetime(festive_dates).date) | df_aggregated['is_festive']
 
     # Create dummies
-    df_aggregated['parking_id'] = df_aggregated['parking_id'].astype(str) 
-    parking_dummies = pd.get_dummies(df_aggregated['parking_id'], prefix='parking')
-    df_aggregated = df_aggregated.join(parking_dummies).drop(columns=['parking_id', 'timestamp'])
+    df_aggregated['zone'] = df_aggregated['zone'].astype(str) 
+    parking_dummies = pd.get_dummies(df_aggregated['zone'], prefix='zone')
+    df_aggregated = df_aggregated.join(parking_dummies).drop(columns=['zone', 'timestamp', 'parking_id'])
+    
 
     # Rename occupancy to mean_occupancy
     df_aggregated.rename(columns={'occupancy': 'mean_occupancy'}, inplace=True)
@@ -105,7 +136,7 @@ def train_model(parking_ids: list, start_time = datetime.now(), end_time = None,
         print(f"Error saving model: {e}")
 
 def main():
-    train_model(parking_ids = ["10", "2", "30", "4"])
+    train_model()
 
 
 if __name__ == "__main__":
