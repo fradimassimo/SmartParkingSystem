@@ -15,9 +15,6 @@ def train_model(parking_ids: list, start_time = datetime.now(), end_time = None,
     if festive_dates is None:
         festive_dates = get_festive_dates()
 
-    print(end_time)
-    print(start_time)
-    
     # retrieve data from PostgreSQL
     pg_conn = psycopg2.connect(
     dbname="smart-parking",
@@ -50,8 +47,6 @@ def train_model(parking_ids: list, start_time = datetime.now(), end_time = None,
 
     pg_conn.close()
 
-    print(df.head())
-    print(df.tail())
     df.to_csv('out.csv')
 
     df['timestamp'] = pd.to_datetime(df['timestamp'])
@@ -103,7 +98,7 @@ def train_model(parking_ids: list, start_time = datetime.now(), end_time = None,
 
     try:
         # Save the model using pickle
-        with open("sarima_model.pkl", "wb") as f:
+        with open("app/data_processor/sarima_model.pkl", "wb") as f:
             pickle.dump(sarima_result, f)
         print("Model saved successfully")
     except Exception as e:

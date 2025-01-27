@@ -5,7 +5,7 @@ import pickle
 def get_prediction_for_week(parking_id, start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S"), festive_dates = None, zone = None):
     """returns forecast for the next week given a parking_id and start_time. """ 
     try:
-        with open("sarima_model.pkl", "rb") as f:
+        with open("app/data_processor/sarima_model.pkl", "rb") as f:
             loaded_model = pickle.load(f)
     except Exception as e:
         print(f"Error loading model, be sure to train it first: {e}")
@@ -38,6 +38,9 @@ def get_prediction_for_week(parking_id, start_time = datetime.now().strftime("%Y
         zone_dummies = pd.get_dummies(df_aggregated['zone'], prefix='zone')
         df_aggregated = df_aggregated.join(zone_dummies).drop(columns=['zone'])
     
+    df_aggregated = df_aggregated.astype(int)
+    df_aggregated = df_aggregated.apply(pd.to_numeric, errors='coerce').fillna(df_aggregated.mean())
+
     forecast = loaded_model.forecast(steps=168, exog=df_aggregated)
 
     forecast_df = pd.DataFrame({
@@ -46,7 +49,6 @@ def get_prediction_for_week(parking_id, start_time = datetime.now().strftime("%Y
     "forecasted_occupancy": forecast
     })
 
-    forecast_df.to_csv('out.csv')
     return forecast_df # pandas dataframe with forecasted occupancy for the next week
 
 
@@ -57,6 +59,8 @@ def get_festive_dates():
 def main():
     parking_id = "4"
     ma = get_prediction_for_week(parking_id)
+    print(ma.head())
+    print(ma.tail())
 
 
 if __name__ == "__main__":

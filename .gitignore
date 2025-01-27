@@ -2,3 +2,4 @@ __pycache__/
 venv/
 data/mongo
 data/postgres
+data_processor/sarima_model.pkl
