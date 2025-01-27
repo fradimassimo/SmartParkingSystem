@@ -86,12 +86,12 @@ def process_and_publish_data(tempo, lots, structure):
             record.append(single_record)
         aggregated = aggregator(structure, record)
 
-        for lot in aggregated:
-            try:
-                client.publish("closed_parking/data", json.dumps(lot))
-                logger.info(f"Published: {lot}")
-            except Exception as error:
-                logger.error(f"Error publishing to MQTT broker: {error}")
+        #for lot in aggregated:
+        try:
+            client.publish("closed_parking/data", json.dumps(aggregated))
+            logger.info(f"Published: {aggregated}")
+        except Exception as error:
+            logger.error(f"Error publishing to MQTT broker: {error}")
     except Exception as e:
         logger.error(f"Error processing data: {e}")
 

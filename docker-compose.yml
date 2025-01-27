@@ -31,14 +31,14 @@ services:
     depends_on:
       - mongodb
 
-  image-fetcher:
-    build:
-      context: .
-      dockerfile: ./image_fetcher/Dockerfile
-    volumes:
-      - ./images:/app/images
-    depends_on:
-      - mongodb
+#  image-fetcher:
+#    build:
+#      context: .
+#      dockerfile: ./image_fetcher/Dockerfile
+#    volumes:
+#      - ./images:/app/images
+#    depends_on:
+#      - mongodb
 
   postgres:
     image: postgres:latest
@@ -83,6 +83,21 @@ services:
     volumes:
       - ./data_processor:/app/data_processor # Persist trained models
 
+
+  consumer:
+    container_name: consumer
+    build:
+      context: .
+      dockerfile: ./consumer/Dockerfile
+    depends_on:
+      - postgres
+      - mosquitto
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: smart-parking
+    volumes:
+      - ./consumer:/app
 
 #  flask:
 #    build:
