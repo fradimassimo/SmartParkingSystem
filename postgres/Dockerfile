@@ -5,6 +5,7 @@ WORKDIR /app
 COPY check_parkings.py .
 COPY processed_data_generator.py .
 COPY requirements.txt .
+COPY garage_parking.py .
 
 RUN pip install --no-cache-dir -r requirements.txt
 

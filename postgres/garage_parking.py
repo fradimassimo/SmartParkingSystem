@@ -76,7 +76,9 @@ def insert_parking_data(parking_data):
                 logger.info(f"Parking data inserted: {data}")
         except psycopg2.Error as e:
             logger.error(f"Error inserting into Postgres DB: {e}")
-
+    conn.commit()
+    cur.close()
+    conn.close()
 
 
 
