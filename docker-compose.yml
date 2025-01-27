@@ -75,6 +75,15 @@ services:
     depends_on:
       - mosquitto
 
+  sarima:
+    build:
+      context: ./data_processor
+      dockerfile: Dockerfile
+    container_name: sarima
+    volumes:
+      - ./data_processor:/app/data_processor # Persist trained models
+
+
 #  flask:
 #    build:
 #      context: ./flask-app

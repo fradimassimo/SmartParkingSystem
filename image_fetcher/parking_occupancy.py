@@ -1,4 +1,4 @@
-import torch, os, requests
+import torch, os
 from parking_detection.models.rcnn import RCNN
 from parking_detection.utils import transforms
 # from parking_detection.utils import visualize as vis 

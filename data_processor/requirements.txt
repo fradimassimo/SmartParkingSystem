@@ -1,0 +1,3 @@
+pandas
+statsmodels
+psycopg2-binary
