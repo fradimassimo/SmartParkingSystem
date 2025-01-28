@@ -1,12 +1,12 @@
-FROM python:3.9-slim
+FROM python:3.10-slim
 
 WORKDIR /app
 
-COPY requirements.txt .
-COPY fraui.py .
-RUN pip install --no-cache-dir -r requirements.txt
-RUN apt-get update && apt-get install -y netcat-openbsd
-
 COPY . .
+
+RUN pip install --no-cache-dir -r requirements.txt
+# RUN apt-get update && apt-get install -y netcat-openbsd
+
+EXPOSE 5000
 
 CMD ["python", "fraui.py"]

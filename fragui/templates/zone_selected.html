@@ -53,16 +53,16 @@
             <thead>
                 <tr>
                     <th>Parking Name</th>
-                    <th>Occupancy (%)</th>
-                    <th>Availability (%)</th>
+                    <th>Occupancy</th>
+                    <th>Availability</th>
                 </tr>
             </thead>
             <tbody>
                 {% for parking in parkings %}
                     <tr>
                         <td>{{ parking['name'] }}</td>
-                        <td>{{ parking['occupancy'] }}%</td>
-                        <td>{{ parking['vacancy'] }}%</td>
+                        <td>{{ parking['occupancy'] }}</td>
+                        <td>{{ parking['vacancy'] }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
