@@ -81,7 +81,7 @@ services:
       dockerfile: Dockerfile
     container_name: sarima
     volumes:
-      - ./data_processor:/app/data_processor # Persist trained models
+      - ./data_processor:/app/data_processor
 
 
   consumer:
@@ -102,6 +102,7 @@ services:
   flask:
     build:
       context: ./fragui
+      dockerfile: Dockerfile
     container_name: flask-app
     ports:
       - "5000:5000"

@@ -116,8 +116,8 @@ if __name__ == "__main__":
             continue
     # L'unica cosa che mi interessa è che siano (capacity*15) il resto
     sensors = load_json_file('/app/1766_sensors_data.json')
-    str = load_json_file('/app/corrected_closed_parking_structures.json')
-    print(str)
+    str = get_garage_structure()
+    
     if not sensors or not str:
         logger.error("Critical files are missing or invalid. Exiting.")
         exit(1)
