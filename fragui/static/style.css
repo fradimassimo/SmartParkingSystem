@@ -1,0 +1,177 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: lightblue; 
+    background-image: url('https://cdn.pixabay.com/photo/2013/04/01/21/31/parking-99211_1280.png');
+    background-size: 10%;
+    background-repeat: no-repeat;
+    background-position: left;
+    background-attachment: fixed;
+}
+
+
+
+.container {
+    width: 50%;
+    margin: 20px ;
+    padding: 20px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.container-wrapper {
+    display: flex;
+    justify-content: space-between; 
+    align-items: flex-start;
+}
+
+.topcontainer {
+    width: 90%;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+
+h1 {
+    text-align: center;
+    color: #d9534f; /* Rosso */
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #d9534f; /* Rosso */
+}
+
+select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    font-size: 16px;
+}
+
+button {
+    width: 30%;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    background-color: #d9534f; 
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #da8583;
+}
+
+/* Alerts */
+.low {
+    background-color: green;
+    color: white;
+}
+
+.moderate {
+    background-color: orange;
+    color: white;
+}
+
+.high {
+    background-color: red;
+    color: white;
+}
+
+.very-high {
+    background-color: darkred;
+    color: white;
+}
+
+.extreme {
+    background-color: purple;
+    color: white;
+}
+
+/* Regole aggiuntive per la tabella */
+#alertsTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+#alertsTable th, #alertsTable td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+#alertsTable th {
+    background-color: #00796b;
+    color: white;
+}
+
+#alertsTable tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+#alertsTable tr:hover {
+    background-color: #ddd;
+}
+
+
+/* Personalizzazione della scheda del parcheggio */
+.parking-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    padding: 20px;
+    margin: 15px 0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease-in-out;
+}
+
+.parking-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.parking-card h3 {
+    font-size: 1.5em;
+    color: #333;
+}
+
+.parking-card .card-details {
+    font-size: 1.2em;
+    color: #555;
+}
+
+.parking-card .availability {
+    font-size: 1.4em;
+    font-weight: bold;
+    color: #e74c3c;
+}
+
+.parking-card .button {
+    background-color: #3498db;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 1.1em;
+    text-align: center;
+}
+
+.parking-card .button:hover {
+    background-color: #2980b9;
+}
