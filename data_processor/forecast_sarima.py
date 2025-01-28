@@ -10,7 +10,7 @@ def get_prediction_for_week(parking_id, zone, start_time = datetime.now().strfti
         raise ValueError(f"Invalid zone: {zone}. Valid zones are {VALID_ZONES}.")
     
     try:
-        with open("app/data_processor/sarima_model.pkl", "rb") as f:
+        with open("data_processor/sarima_model.pkl", "rb") as f:
             loaded_model = pickle.load(f)
     except Exception as e:
         print(f"Error loading model, be sure to train it first: {e}")
