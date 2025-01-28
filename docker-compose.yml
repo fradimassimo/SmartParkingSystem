@@ -99,16 +99,14 @@ services:
     volumes:
       - ./consumer:/app
 
-#  flask:
-#    build:
-#      context: ./flask-app
-#    container_name: flask-app
-#    ports:
-#      - "5000:5000"
-#    depends_on:
-#      - postgres
-#      - mongodb
-#      - mosquitto
+  flask:
+    build:
+      context: ./fragui
+    container_name: flask-app
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+      - mongodb
+      - mosquitto
 
-
-#flask is for the moment commented out

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Parking Data - Zone: {{ zone }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEJ4QJQG4KnFf9qfu2RkUq98lr6m1Xhw5vqfJ9yIj7wpzSe2A1hpXlNw43Rks" crossorigin="anonymous">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f6f9;
+        }
+        .container {
+            margin-top: 30px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        table {
+            width: 100%;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f1c40f;
+            cursor: pointer;
+        }
+        footer {
+            text-align: center;
+            background: linear-gradient(to right, #3498db, #2ecc71);
+            color: white;
+            padding: 10px 0;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Parking Data - Zone: {{ zone }}</h1>
+
+        <h3>Parking Details</h3>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Parking Name</th>
+                    <th>Occupancy (%)</th>
+                    <th>Availability (%)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for parking in parkings %}
+                    <tr>
+                        <td>{{ parking['name'] }}</td>
+                        <td>{{ parking['occupancy'] }}%</td>
+                        <td>{{ parking['vacancy'] }}%</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <footer>
+        <a href="{{ url_for('index') }}" style="color: white;">Back to Home</a>
+    </footer>
+
+</body>
+</html>
