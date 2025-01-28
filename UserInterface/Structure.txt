@@ -1,0 +1,18 @@
+/flask_app/
+│
+├── app.py                 # Main file 
+├── /templates/            # HTML file
+│   ├── index.html         # Home page
+│   ├── downtown.html                   # Downtown HTML page
+|   ├── north.html                      # North HTML page
+|   ├── south.html                      # South HTML page
+|   ├── west.html                       # West HTML page
+|   ├── east.html                       # East HTML page 
+├── /static/               # Static file (CSS, Images, JS)
+│   ├── /css/
+│   │   └── style.css      #  CSS file
+│   ├── /js/
+│   │   └── script.js      # JavaScript file
+│   └── /images/
+│       └── logo.png       # Image
+└── requirements.txt       # Dipendenze del progetto
