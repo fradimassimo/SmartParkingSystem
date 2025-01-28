@@ -1,7 +1,9 @@
 import json
 import random
 from collections import defaultdict
-
+from sqlalchemy import create_engine
+import pandas as pd
+import sys
 
 def aggregate_by_coordinates(record):
     """
@@ -90,3 +92,30 @@ def aggregator(structure, data):
     result = merging(structure, first_aggregation)
     return result
 
+
+def get_garage_structure():
+    DATABASE_URI = "postgresql://admin:root@postgres:5432/smart-parking"
+    engine = create_engine(DATABASE_URI)
+
+    try:
+        # Retrieve data from PostgreSQL
+        query = """
+               SELECT * FROM parkings WHERE parking_id = 'garage'
+           """
+        print("Fetching data from the database...")
+
+        df = pd.read_sql(query, engine)
+
+        if df.empty:
+            print("No data found.")
+            return []
+
+        print("Data fetched successfully.")
+
+        # Convert the DataFrame to a list of dictionaries
+        data_as_dict = df.to_dict(orient="records")
+        return data_as_dict
+
+    except Exception as e:
+        print(f"Error retrieving parking data: {e}", file=sys.stderr)
+        return []

@@ -17,3 +17,4 @@ RUN chmod 0644 /etc/cron.d/parkings_cron
 RUN crontab /etc/cron.d/parkings_cron
 
 CMD ["cron", "-f"]
+

@@ -24,8 +24,7 @@ from datetime import datetime, timezone
 import time
 import logging
 import random
-
-from utils import aggregator
+from utils import aggregator, get_garage_structure
 
 #spark = SparkSession.builder.appName("SparkStreamingApp").getOrCreate()
 
@@ -115,9 +114,10 @@ if __name__ == "__main__":
             print(f"Connection refused, retrying, attempt: {retry}")
             time.sleep(retry_timeout)
             continue
-
+    # L'unica cosa che mi interessa è che siano (capacity*15) il resto
     sensors = load_json_file('/app/1766_sensors_data.json')
-    str = load_json_file('/app/corrected_closed_parking_structures.json')
+    str = get_garage_structure()
+    print(str)
     if not sensors or not str:
         logger.error("Critical files are missing or invalid. Exiting.")
         exit(1)
