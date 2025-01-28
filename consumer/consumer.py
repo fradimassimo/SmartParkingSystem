@@ -1,13 +1,12 @@
-""""
-Connection to postgres, subscription on a topic MQTT every 15 minutes and insert in postgres table
+"""
+Connection to Postgres, subscription to an MQTT topic, and saving one message every 15 minutes.
 """
 
 import paho.mqtt.client as mqtt
 import psycopg2
 import json
 import logging
-from datetime import datetime
-import time
+from datetime import datetime, timedelta
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -20,20 +19,20 @@ DB_CONFIG = {
     "port": "5432"
 }
 
+# Variabile per tracciare l'ultimo messaggio salvato
+last_save_time = datetime.min
+
+
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         logger.info("Connected to MQTT broker.")
     else:
         logger.error(f"Failed to connect to MQTT broker, return code {rc}")
 
-def on_log(client, userdata, level, buf):
-    logger.info(f"Log: {buf}")
-
-def on_sub(client, userdata, mid):
-    logger.info(f"Message {mid} has been published.")
-
 
 def on_message(client, userdata, msg):
+    global last_save_time
+
     try:
         logger.info(f"Message received on topic {msg.topic}")
         data_list = json.loads(msg.payload)
@@ -42,11 +41,18 @@ def on_message(client, userdata, msg):
             logger.error("Received data is not a list.")
             return
 
+        current_time = datetime.now()
+        # Controlla se sono passati almeno 15 minuti dall'ultimo salvataggio
+        if (current_time - last_save_time) < timedelta(minutes=2):
+            logger.info("Skipping message as 15 minutes haven't passed yet.")
+            return
+
+        # Se sono passati 15 minuti, salva i dati nel database
         db_conn = userdata["db_conn"]
         insert_query = """
-                INSERT INTO occupancy_data (parking_id, timestamp, occupancy, vacancy)
-                VALUES (%s, %s, %s, %s)
-            """
+            INSERT INTO occupancy_data (parking_id, timestamp, occupancy, vacancy)
+            VALUES (%s, %s, %s, %s)
+        """
 
         with db_conn.cursor() as cur:
             for data in data_list:
@@ -56,6 +62,8 @@ def on_message(client, userdata, msg):
                     data["occupancy"],
                     data["vacancy"]
                 ))
+
+        last_save_time = current_time
         logger.info(f"Inserted data into DB: {data_list}")
 
     except Exception as e:
@@ -73,12 +81,6 @@ def postgres_connection():
         return None
 
 
-def sub_and_insert_data(client, db_conn):
-    client.subscribe(mqtt_topic)
-    client.user_data_set({"db_conn": db_conn})
-    logger.info(f"Subscribed to topic: {mqtt_topic}")
-
-
 if __name__ == "__main__":
 
     mqtt_broker = "mosquitto"
@@ -91,17 +93,14 @@ if __name__ == "__main__":
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_message = on_message
-    client.on_log = on_log
+
+    # Passa la connessione al database come userdata al client MQTT
+    client.user_data_set({"db_conn": db_conn})
 
     try:
-        client.connect("mosquitto", 1883, 60)
-        client.loop_start()
+        client.connect(mqtt_broker, 1883, 60)
+        client.subscribe(mqtt_topic)
+        logger.info(f"Subscribed to topic: {mqtt_topic}")
+        client.loop_forever()  # Mantiene la connessione MQTT attiva
     except Exception as e:
         logger.error(f"Error in MQTT connection or loop: {e}")
-
-    while True:
-        sub_and_insert_data(client, db_conn)
-        logger.info("Listening for messages")
-        logger.info("Sleeping for 15 minutes before the next cycle.")
-        time.sleep(900)  # Sleep for 15 minutes (900 seconds)
-

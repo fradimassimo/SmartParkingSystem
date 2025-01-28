@@ -2,3 +2,4 @@ pandas
 statsmodels
 psycopg2-binary
 sqlalchemy
+paho-mqtt

@@ -41,7 +41,6 @@ def train_model(start_time=datetime.now(), end_time=None, festive_dates=None):
             FROM occupancy_data o
             JOIN parkings p ON o.parking_id = p.parking_id
             WHERE o.timestamp BETWEEN %(end_time)s AND %(start_time)s
-            AND o.parking_id = '2'
         """
         print("Fetching data from the database...")
         df = pd.read_sql(query, engine, params={"end_time": end_time, "start_time": start_time})
@@ -97,8 +96,6 @@ def train_model(start_time=datetime.now(), end_time=None, festive_dates=None):
     X_train = df_aggregated.drop(columns=['mean_occupancy'])
     X_train = X_train.astype(int)
     X_train = X_train.apply(pd.to_numeric, errors='coerce').fillna(X_train.mean())
-
-    print(X_train.head())
 
     # Train SARIMA model
     try:
