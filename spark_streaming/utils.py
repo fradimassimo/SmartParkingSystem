@@ -100,7 +100,7 @@ def get_garage_structure():
     try:
         # Retrieve data from PostgreSQL
         query = """
-               SELECT * FROM parkings WHERE parking_id = 'garage'
+               SELECT * FROM parkings WHERE parking_type = 'garage'
            """
         print("Fetching data from the database...")
 
@@ -114,6 +114,11 @@ def get_garage_structure():
 
         # Convert the DataFrame to a list of dictionaries
         data_as_dict = df.to_dict(orient="records")
+        data_as_dict["location"] = {
+            "latitude": data_as_dict["latitude"],
+            "longitude": data_as_dict["longitude"]
+        }
+
         return data_as_dict
 
     except Exception as e:

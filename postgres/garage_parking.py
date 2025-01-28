@@ -84,7 +84,7 @@ def insert_parking_data(parking_data):
 
 def main():
     lat_min, lat_max = 46.0400, 46.1234
-    lon_min, lon_max = 11.0700, 11.1405
+    lon_min, lon_max = 11.0700, 11.1400
     bounds = ((lat_min, lat_max), (lon_min, lon_max))
     num_locations = 15
     closed_lots = create_closed_parking(bounds, num_locations)

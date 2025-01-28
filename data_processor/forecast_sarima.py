@@ -2,6 +2,7 @@ import json
 from datetime import datetime, timedelta
 import pandas as pd
 import pickle
+import utils
 import paho.mqtt.client as mqtt
 
 # MQTT Broker Configuration
@@ -26,7 +27,7 @@ def on_message(client, userdata, msg):
         zone = payload.get("zone")
         parking_type = payload.get("parking_type")
 
-        forecast_df = get_prediction_for_week(zone, parking_type)
+        forecast_df = get_predictions(zone, parking_type)
         forecast_json = forecast_df.to_json(orient="records", date_format="iso")
 
         client.publish(RESPONSE_TOPIC, forecast_json)
@@ -36,8 +37,8 @@ def on_message(client, userdata, msg):
         print(f"Error handling message: {e}")
 
 
-def get_prediction_for_week(zone, parking_type, start_time = None, festive_dates = None):
-    """returns forecast for the next week given a parking_id and start_time. """ 
+def get_predictions(zone, parking_type, daily = False, start_time = None, festive_dates = None):
+    """returns forecast for the next week given a zone, type of parking and a start_time (optional, current time is deafult). """ 
     VALID_ZONES = ["NORD", "SUD", "CENTRO", "EST", "OVEST"]
     VALID_TYPES = ["street", "garage"]
     
@@ -49,6 +50,8 @@ def get_prediction_for_week(zone, parking_type, start_time = None, festive_dates
     
     if start_time is None:
         start_time = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        if daily:
+            start_time += timedelta(days=1)
     
     try:
         with open("data_processor/sarima_model.pkl", "rb") as f:
@@ -56,15 +59,16 @@ def get_prediction_for_week(zone, parking_type, start_time = None, festive_dates
     except Exception as e:
         print(f"Error loading model, be sure to train it first: {e}")
 
-    
+    n_pred = 24 if daily else 168
+
     new_records = []
-    for i in range(168):
+    for i in range(n_pred):
         new_records.append({
             "timestamp": start_time + timedelta(hours=i)
         })
 
     if festive_dates is None:
-        festive_dates = get_festive_dates()
+        festive_dates = utils.get_festive_dates()
 
 
     df_aggregated = pd.DataFrame(new_records)
@@ -84,40 +88,38 @@ def get_prediction_for_week(zone, parking_type, start_time = None, festive_dates
     for valid_type in VALID_TYPES:
         df_aggregated[f'parking_{valid_type}'] = (df_aggregated['parking_type'] == valid_type).astype(int)
 
-    df_aggregated.drop(columns=['zone', 'timestamp', 'parking_id', 'parking_type'], inplace=True)
+    df_aggregated.drop(columns=['zone', 'timestamp', 'parking_type'], inplace=True)
 
     df_aggregated = df_aggregated.astype(int)
     df_aggregated = df_aggregated.apply(pd.to_numeric, errors='coerce').fillna(df_aggregated.mean())
 
     # Forecast using the loaded SARIMA model
-    forecast = loaded_model.forecast(steps=168, exog=df_aggregated)
+    forecast = loaded_model.forecast(steps=n_pred, exog=df_aggregated)
 
-    forecast_df = pd.DataFrame({
-        "timestamp": pd.date_range(start=start_time, periods=168, freq="h"),
-        "forecasted_occupancy": forecast
-    })
+    if daily:
+        mean_occupancy = forecast.mean()
+        return mean_occupancy
+    else:
+        forecast_df = pd.DataFrame({
+            "timestamp": pd.date_range(start=start_time, periods=168, freq="h"),
+            "forecasted_occupancy": forecast
+        })
 
-    return forecast_df  # pandas dataframe with forecasted occupancy for the next week
+        return forecast_df  # pandas dataframe with forecasted occupancy for the next week
 
 
-def get_festive_dates():
-    return ["2025-01-01", "2025-01-06", "2025-04-20", "2025-04-21", "2025-05-01", "2025-04-25",
-                    "2025-08-15","2025-12-08","2025-12-25","2025-12-26"]
 
+"""
 def main():
-    parking_id = "4"
-    ma = get_prediction_for_week(parking_id, zone = "NORD", parking_type = "street")
+    ma = get_prediction_for_week(zone = "NORD", parking_type = "street")
     print(ma.head())
     print(ma.tail())
-
+"""
 
 if __name__ == "__main__":
-    main()
-
     # Connect the client
-client.on_connect = on_connect
-client.on_message = on_message
-client.connect(BROKER_ADDRESS, 1883, 60)
+    client.on_connect = on_connect
+    client.on_message = on_message
+    client.connect(BROKER_ADDRESS, 1883, 60)
 
-# Start the MQTT loop
-client.loop_forever()
+    client.loop_forever()
