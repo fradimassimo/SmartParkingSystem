@@ -43,16 +43,39 @@ def on_publish(client, userdata, mid):
 def on_log(client, userdata, level, buf):
     logger.info(f"Log: {buf}")
 
-def load_json_file(file_path):
-    try:
-        with open(file_path, 'r', encoding='utf-8') as file:
-            return json.load(file)
-    except FileNotFoundError:
-        logger.error(f"File '{file_path}' not found!")
-        return []
-    except json.JSONDecodeError:
-        logger.error(f"Error decoding JSON file '{file_path}'! Ensure it is correctly formatted.")
-        return []
+
+#generated sensors
+def generate_parking_structure(parking_structure: list, num_parkings: int):
+    """
+        Used to generate all the spots inside a certain location
+    """
+
+    parking_spots = []
+    for i in range(num_parkings):
+        parking_spot = {
+            "device_id": f"spot_{i + 1:04d}",
+            "parking_id": parking_structure
+       }
+        parking_spots.append(parking_spot)
+    return parking_spots
+
+
+#MI SERVE
+# generate parking data for all spots at a given time interval, give as input a vector of parkings in the same location
+
+
+#uso questa con input = parking_lot che esce da create closed_parking in garage parking e output sensors_data.json
+def create_parking_dataset():
+    structures = ["C001", "C002", "C003", "C004", "C005", "C006",
+                  "C007", "C008", "C009", "C010", "C011", "C012",
+                  "C013", "C014","C015"]
+
+    all_parkings = []
+    for struct in structures:
+        all_parkings.append(generate_parking_structure(struct, random.randint(50,200)))
+
+    return all_parkings
+
 
 def process_and_publish_data(tempo, lots, structure):
     try:
@@ -65,24 +88,26 @@ def process_and_publish_data(tempo, lots, structure):
 
         current_time = tempo
         record = []
-        for spot in lots:
-            park_flag = random.choice([0, 1])
-            # if the sensor malfunctions, then the spot is marked automatically as occupied
-            battery_percent = 100 if random.random() > 0.005 else 0
-            if battery_percent == 0:
-                park_flag = 0
 
-            single_record = {
-                "device_id": spot["deviceid"],
-                "metadata_time": current_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
-                "location": spot["location"],
-                "payload_fields_park_flag": park_flag,
-                "payload_fields_battery_percent": battery_percent,
-                "payload_fields_low_voltage": "False",
-                "counter": random.randint(1, 1000),
-                "active": 1
-            }
-            record.append(single_record)
+        for garage in lots:
+            for spot in garage:
+                park_flag = random.choice([0, 1])
+                # if the sensor malfunctions, then the spot is marked automatically as occupied
+                battery_percent = 100 if random.random() > 0.005 else 0
+                if battery_percent == 0:
+                    park_flag = 0
+
+                single_record = {
+                    "device_id": spot["device_id"],
+                    "parking_id": spot["parking_id"],
+                    "metadata_time": current_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                    "payload_fields_park_flag": park_flag,
+                    "payload_fields_battery_percent": battery_percent,
+                    "payload_fields_low_voltage": "False",
+                    "counter": random.randint(1, 1000),
+                    "active": 1
+                }
+                record.append(single_record)
         aggregated = aggregator(structure, record)
 
         #for lot in aggregated:
@@ -115,8 +140,8 @@ if __name__ == "__main__":
             time.sleep(retry_timeout)
             continue
     # L'unica cosa che mi interessa è che siano (capacity*15) il resto
-    sensors = load_json_file('/app/1766_sensors_data.json')
-    str = get_garage_structure()
+    sensors =  create_parking_dataset()
+    structure = get_garage_structure()
     
     if not sensors or not str:
         logger.error("Critical files are missing or invalid. Exiting.")
@@ -124,6 +149,6 @@ if __name__ == "__main__":
 
     while True:
         t = datetime.now(timezone.utc)
-        process_and_publish_data(t, sensors, str)
+        process_and_publish_data(t, sensors, structure)
         logger.info("Sleeping for 20 seconds")
         time.sleep(20)

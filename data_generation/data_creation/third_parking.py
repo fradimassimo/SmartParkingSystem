@@ -24,7 +24,7 @@ def read_parking_lots_from_json(input_file: str):
     return parking_lots
 
 
-# generate parking structure
+
 def generate_parking_structure(parking_structure: dict, num_parkings: int):
     """
         Used to generate all the spots inside a certain location
@@ -39,6 +39,7 @@ def generate_parking_structure(parking_structure: dict, num_parkings: int):
         }
         parking_spots.append(parking_spot)
     return parking_spots
+
 
 
 # generate parking data for all spots at a given time interval, give as input a vector of parkings in the same location
@@ -61,14 +62,12 @@ def generate_parking_data(parking_spots):
     return data
 
 
-# Main function to generate and save parking data to JSON file
-def create_parking_dataset(input_file, output_file):
-    structures = read_parking_lots_from_json(input_file)
+def create_parking_dataset(input, output_file):
+    structures = input
 
     all_parkings = []
-
     for struct in structures:
-        capacity = struct["capacity"]
+        capacity = struct["capacity"] #aggiungi capacity nella generazione
         all_parkings.append(generate_parking_structure(struct, capacity))
 
     all_data = []
@@ -77,3 +76,4 @@ def create_parking_dataset(input_file, output_file):
 
     with open(output_file, 'w') as file:
         json.dump(all_data, file, indent=4)
+

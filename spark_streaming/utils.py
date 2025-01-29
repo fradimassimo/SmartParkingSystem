@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 import pandas as pd
 import sys
 
-def aggregate_by_coordinates(record):
+def aggregate_by_ids(record):
     """
     Aggregating data from spots sensors into closed parking lots based on locations,
     showing amount of occupied and free spots per parking lot.
@@ -19,20 +19,20 @@ def aggregate_by_coordinates(record):
     parking_areas = defaultdict(lambda: {"occupied": 0, "free": 0})
     metadata = record[0]["metadata_time"]
     for spot in record:
-        coordinates = (spot["location"]["latitude"], spot["location"]["longitude"])
+        ids = (spot["parking_id"])
         park_flag = spot["payload_fields_park_flag"]
 
 
         if park_flag == 1:  # Occupied
-            parking_areas[coordinates]["occupied"] += 1
+            parking_areas[ids]["occupied"] += 1
         else:  # Free
-            parking_areas[coordinates]["free"] += 1
+            parking_areas[ids]["free"] += 1
 
     result = []
-    for coords, counts in parking_areas.items():
+    for id, counts in parking_areas.items():
         result.append({
 
-            "location": {"latitude":coords[0],"longitude":coords[1]},
+            "parking_id": id,
             "occupied": counts["occupied"],
             "free": counts["free"],
             "metadata_time": metadata
@@ -41,29 +41,28 @@ def aggregate_by_coordinates(record):
     return result
 
 
-def merging(structure, aggregated_by_coords):
+def merging(structure, aggregated_by_ids):
     """
        Merging aggregated by coordinates data with closed_parking structure.
 
        Args:
            structure (list): 15 closed parking lots data.
-           aggregated_by_coords (list): aggregated by coordinates data.
+           aggregated_by_ids (list): aggregated by coordinates data.
 
        Returns:
            list: list of dictionaries, each representing a closed parking lot.
        """
     result = []
 
-    for lot in aggregated_by_coords:
-        lot_location = (lot["location"]["latitude"], lot["location"]["longitude"])
+    for lot in aggregated_by_ids:
+        lot_id = (lot["parking_id"])
         match_found = False
         for good_lot in structure:
-            good_lot_location = (good_lot["location"]["latitude"], good_lot["location"]["longitude"])
-            if good_lot_location == lot_location:
+            good_lot_id = (good_lot["parking_id"])
+            if good_lot_id == lot_id:
                 record = {
                     "parking_id": good_lot["parking_id"],
                     "name": good_lot["name"],
-                    "capacity": good_lot["capacity"],
                     "metadata_time": lot["metadata_time"],
                     "location": lot["location"],
                     "vacancy": lot["free"],
@@ -73,7 +72,7 @@ def merging(structure, aggregated_by_coords):
                 match_found = True
                 break
         if not match_found:
-            print(f"No matching location found for: {lot_location}")
+            print(f"No matching id found for: {lot_id}")
 
     return result
 
@@ -88,7 +87,7 @@ def aggregator(structure, data):
        Returns:
            list: list of dictionaries, each representing a closed parking lot.
     """
-    first_aggregation = aggregate_by_coordinates(data)
+    first_aggregation = aggregate_by_ids(data)
     result = merging(structure, first_aggregation)
     return result
 
@@ -106,21 +105,15 @@ def get_garage_structure():
 
         df = pd.read_sql(query, engine)
 
-        if df.empty:
-            print("No data found.")
-            return []
+        data_as_dict = []
 
-        print("Data fetched successfully.")
-
-        # Convert the DataFrame to a list of dictionaries
-        data_as_dict = df.to_dict(orient="records")
-        data_as_dict["location"] = {
-            "latitude": data_as_dict["latitude"],
-            "longitude": data_as_dict["longitude"]
-        }
+        # Itera sulle righe del DataFrame e crea un dizionario per ogni riga
+        for _, row in df.iterrows():
+            row_dict = row.to_dict()  # Crea un dizionario dalla riga
+            # Aggiungi il dizionario alla lista
+            data_as_dict.append(row_dict)
 
         return data_as_dict
-
     except Exception as e:
         print(f"Error retrieving parking data: {e}", file=sys.stderr)
-        return []
+

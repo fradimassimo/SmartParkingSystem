@@ -20,6 +20,52 @@ pg_conn = psycopg2.connect(
 )
 pg_cur = pg_conn.cursor()
 
+
+# Check if the tables exist, if not create them
+pg_cur.execute("""
+    SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_name = 'parkings'
+    );
+""")
+
+if not pg_cur.fetchone()[0]:  # If the table does not exist, create it
+    pg_cur.execute("""
+        CREATE TABLE parkings (
+            parking_id VARCHAR(50) PRIMARY KEY,   
+            name VARCHAR(100) NOT NULL,      
+            latitude FLOAT NOT NULL,         
+            longitude FLOAT NOT NULL,        
+            paying_hours VARCHAR(50),        
+            price_per_hour FLOAT,            
+            parking_type VARCHAR(10) NOT NULL  
+        );
+    """)
+    print("Table 'parkings' created.")
+
+pg_cur.execute("""
+    SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_name = 'occupancy_data'
+    );
+""")
+if not pg_cur.fetchone()[0]:  # If the table does not exist, create it
+    pg_cur.execute("""
+        CREATE TABLE occupancy_data (
+            parking_id VARCHAR(50) NOT NULL,                
+            timestamp TIMESTAMP NOT NULL,           
+            occupancy INT,                          
+            vacancy INT,                            
+            PRIMARY KEY (parking_id, timestamp),    
+            FOREIGN KEY (parking_id) REFERENCES parkings(parking_id)
+        );
+    """)
+    print("Table 'occupancy_data' created.")
+
+
+
+
+
  # we periodically check if the data in PostgreSQL is up-to-date with the data in MongoDB (i.e. if new entries have been added)
 for parking in parking_data:
         pg_cur.execute("SELECT * FROM parkings WHERE parking_id = %s", (str(parking["parking_id"]),))

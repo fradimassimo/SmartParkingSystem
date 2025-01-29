@@ -1,7 +1,7 @@
 import random
 import psycopg2
 import logging
-
+import json
 
 
 logging.basicConfig(level=logging.INFO)
@@ -35,6 +35,7 @@ def create_closed_parking(bounds, num_locations):
         parking_lot = {
             "parking_id": f"C{i:03d}",
             "name": f"Garage_{i:03d}",
+            "capacity":random.randint(50,200),
             "location": {
                 "latitude": coord[0],
                 "longitude": coord[1]
@@ -46,6 +47,7 @@ def create_closed_parking(bounds, num_locations):
         # print(parking_lot)
 
     return parking_lots
+
 
 def insert_parking_data(parking_data):
     insert_query = """
@@ -91,5 +93,8 @@ def main():
     insert_parking_data(closed_lots)
 
 
+
 if __name__ == "__main__":
     main()
+#prima volta che apri spark crea file json con i sensori che possiedono id come garage (cambia aggregator per id non loc)
+# inserisci clausol se gia esiste non lo ricreare
