@@ -26,18 +26,6 @@ client.connect(mqtt_broker, 1883, 60)
 ####################################### closed_parkings #####################################################à
 closed_data = []
 selected_zone = None  # Variabile globale per la zona selezionata
-# Funzione per gestire la selezione della zona da parte dell'utente
-def on_zone_message(client, userdata, msg):
-    global selected_zone
-    try:
-        # Il messaggio contiene la zona selezionata (es. "NORD")
-        zone_requested = msg.payload.decode()  # Decodifica il messaggio ricevuto
-        selected_zone = zone_requested  # Salva la zona selezionata
-
-        client.publish(mqtt_topic_zone, zone_requested) #pubblica su topic damiano la selezione
-        print(f"Zona selezionata: {selected_zone}")
-    except Exception as e:
-        print(f"Errore nella gestione della zona: {e}")
 
 
 def get_zone(lat, lon):
@@ -87,14 +75,12 @@ def get_data_for_zone(zone):
 
 
 # Subscrizione ai topic
-client.message_callback_add(mqtt_topic_zone, on_zone_message)  # Callback per la selezione della zona
 client.message_callback_add(mqtt_topic_alerts, on_closed_message)  # Callback per i parcheggi chiusi
-
-# Sottoscrizione ai topic
-client.subscribe(mqtt_topic_zone)  # Sottoscrive al topic 'zone/select' per la selezione della zona
 client.subscribe(mqtt_topic_alerts)  # Sottoscrive al topic 'closed_parking/data' per i parcheggi chiusi
 
 ##################################### closed_parkings ########################################################
+
+
 
 ###################################### forecast ###############################################################
 
@@ -113,7 +99,6 @@ def on_forecast_message(client, userdata, msg):
 def get_24h_forecast(forecast):
     first_24h = forecast[:24]  # Prende prime 24h di forecast data
     return first_24h
-
 
 
 client.message_callback_add(mqtt_topic_forecast_response, on_forecast_message)
