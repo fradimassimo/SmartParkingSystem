@@ -10,9 +10,9 @@ app = Flask(__name__)
 # MQTT setup
 
 
-mqtt_broker = 'mosquitto'
-mqtt_topic_zone = 'zone/select'
-mqtt_topic_alerts = 'closed_parking/data' #(20 sec published)
+mqtt_broker = "mosquitto"
+mqtt_topic_zone = "zone/select"
+mqtt_topic_alerts = "closed_parking/data" #(20 sec published)
 #mqtt_forecast_request = "forecast/request"
 mqtt_topic_forecast_response = "forecast/response"
 #sulla base della request response manda json con previsioni dati street per quella zona
@@ -25,9 +25,7 @@ client.connect(mqtt_broker, 1883, 60)
 
 ####################################### closed_parkings #####################################################à
 closed_data = []
-selected_zone = None  # Variabile globale per la zona selezionata
-
-
+selected_zone = None
 def get_zone(lat, lon):
     zones = {
         "NORD": {"latitude": [46.100001, 46.12], "longitude": [11.070001, 11.14]},
@@ -91,9 +89,13 @@ def on_forecast_message(client, userdata, msg):
     try:
         forecast_data = json.loads(msg.payload)
         print(f"Ricevute previsioni: {forecast_data}")
+        if isinstance(forecast_data, list):
+            return forecast_data
+        else:
+            print("Dati previsioni non nel formato previsto.")
+
     except json.JSONDecodeError as e:
         print(f"Errore nella ricezione delle previsioni: {e}")
-    return forecast_data
 
 
 def get_24h_forecast(forecast):
