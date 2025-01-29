@@ -45,7 +45,7 @@ def on_log(client, userdata, level, buf):
 
 
 #generated sensors
-def generate_parking_structure(parking_structure: list, num_parkings: int):
+def generate_parking_structure(parking_id, latitude, longitude, num_parkings: int):
     """
         Used to generate all the spots inside a certain location
     """
@@ -54,25 +54,23 @@ def generate_parking_structure(parking_structure: list, num_parkings: int):
     for i in range(num_parkings):
         parking_spot = {
             "device_id": f"spot_{i + 1:04d}",
-            "parking_id": parking_structure
+            "parking_id": parking_id,
+            "location": {
+                "latitude": latitude,
+                "longitude": longitude
+            }
        }
         parking_spots.append(parking_spot)
     return parking_spots
 
 
-#MI SERVE
 # generate parking data for all spots at a given time interval, give as input a vector of parkings in the same location
-
-
-#uso questa con input = parking_lot che esce da create closed_parking in garage parking e output sensors_data.json
-def create_parking_dataset():
-    structures = ["C001", "C002", "C003", "C004", "C005", "C006",
-                  "C007", "C008", "C009", "C010", "C011", "C012",
-                  "C013", "C014","C015"]
+def create_parking_dataset(structures: list):
 
     all_parkings = []
     for struct in structures:
-        all_parkings.append(generate_parking_structure(struct, random.randint(50,200)))
+        all_parkings.append(generate_parking_structure(struct["parking_id"], 
+                    struct["latitude"], struct["longitude"], random.randint(50,200)))
 
     return all_parkings
 
@@ -120,7 +118,7 @@ def process_and_publish_data(tempo, lots, structure):
         logger.error(f"Error processing data: {e}")
 
 if __name__ == "__main__":
-    mqtt_broker = "mosquitto" #mosquitto
+    mqtt_broker = "mosquitto"
 
     client = mqtt.Client()
     client.on_connect = on_connect
@@ -139,7 +137,7 @@ if __name__ == "__main__":
             print(f"Connection refused, retrying, attempt: {retry}")
             time.sleep(retry_timeout)
             continue
-    # L'unica cosa che mi interessa è che siano (capacity*15) il resto
+
     sensors =  create_parking_dataset()
     structure = get_garage_structure()
     

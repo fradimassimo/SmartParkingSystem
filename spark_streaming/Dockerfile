@@ -1,13 +1,25 @@
-FROM bitnami/spark:latest
+FROM python:3.10-slim  
 
-WORKDIR /app
+WORKDIR /app  
 
-COPY spark_streaming.py /app/spark_streaming.py
-COPY utils.py /app/utils.py
-COPY 1766_sensors_data.json /app/1766_sensors_data.json
-COPY corrected_closed_parking_structures.json /app/corrected_closed_parking_structures.json
-COPY requirements.txt .
+# Install Java (for Spark) and `ps`
+RUN apt-get update && apt-get install -y openjdk-11-jdk procps && rm -rf /var/lib/apt/lists/*  
 
-RUN pip3 install --no-cache-dir -r requirements.txt
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64  
+ENV PATH="${JAVA_HOME}/bin:${PATH}"  
 
-CMD ["spark-submit", "--master", "local[*]", "/app/spark_streaming.py"]
+# Copy Spark dependencies (optional, if not using external Spark)
+RUN wget -qO- https://dlcdn.apache.org/spark/spark-3.3.1/spark-3.3.1-bin-hadoop3.tgz | tar xvz -C /opt/
+ENV SPARK_HOME=/opt/spark  
+ENV PATH="${SPARK_HOME}/bin:${SPARK_HOME}/sbin:${PATH}"  
+
+COPY requirements.txt .  
+RUN pip install --no-cache-dir -r requirements.txt  
+
+COPY entrypoint.sh .  
+COPY garage_parking.py .  
+COPY spark_streaming.py .  
+
+RUN chmod +x entrypoint.sh  
+
+CMD ["/bin/bash", "/app/entrypoint.sh"]

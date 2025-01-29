@@ -66,7 +66,9 @@ services:
 
 
   spark:
-    build: spark_streaming
+    build: 
+      context: ./spark_streaming
+      dockerfile: Dockerfile
     container_name: spark
     ports:
       - "8080:8080"
@@ -74,6 +76,7 @@ services:
     depends_on:
       - mosquitto
       - postgres
+      - postgres-check
 
   data_processor:
     build:

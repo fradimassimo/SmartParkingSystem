@@ -68,7 +68,6 @@ def create_closed_parking(bounds, num_locations):
 
 
 # load it into PostgreSQL
-# PostgreSQL connection (reuse the same connection from above)
 conn = psycopg2.connect(
     dbname="smart-parking",
     user="admin",
@@ -84,7 +83,7 @@ start_time = datetime(2025, 1, 30, 23, 45)
 end_time = datetime(2025, 1, 2, 0, 0)
 time_interval = timedelta(minutes=15)
 
-# Exclude these parking IDs (they are generated from actual data)
+# Exclude these parking IDs (they are generated from "actual" data)
 excluded_ids = {1, 3, 7, 8}
 parking_ids = [i for i in range(1, 121) if i not in excluded_ids]
 garage_ids = [f"C{i:03d}" for i in range(1,16)]

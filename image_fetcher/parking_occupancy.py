@@ -6,6 +6,7 @@ import torchvision
 from pymongo import MongoClient
 import time
 from datetime import datetime
+import psycopg2
 
 def get_model():
     model = RCNN()
@@ -65,8 +66,8 @@ def detect_parking_folder(folder_path, parking_id, model):
                 parking_dict = {
                     "parking_id": parking_id,
                     "timestamp": timestamp,
-                    "occupied": occupancy[0],
-                    "vacant": occupancy[1]
+                    "occupancy": occupancy[0],
+                    "vacancy": occupancy[1]
                 }
                 parking_counts.append(parking_dict)
 
@@ -77,7 +78,7 @@ def get_bounding_boxes(parking_id):
     """Fetch bounding boxes (annotations) from MongoDB using parking_id."""
     try:
         # Connect to MongoDB (Docker container uses "mongodb" as the hostname)
-        client = MongoClient("mongodb://admin:root@mongodb:27017/")
+        client = MongoClient("mongodb://mongodb:27017/")
         db = client.parking_management  # Database name
         annotations_collection = db.annotations  # Collection name
 
@@ -120,7 +121,42 @@ def get_image_timestamp(image_path):
 
     return date_creation
 
+def insert_data_to_db(parking_data):
+    """Insert parking data into the occupancy_data table in the PostgreSQL database."""
+
+    conn = psycopg2.connect(
+        dbname="smart-parking",
+        user="admin",
+        password="root",
+        host="postgres",
+        port="5432"
+    )
+    cur = conn.cursor()
+
+    try:
+        for record in parking_data:
+            cur.execute(
+                """
+                INSERT INTO occupancy_data (parking_id, timestamp, occupancy, vacancy)
+                VALUES (%s, %s, %s, %s)
+                """,
+                (
+                    record["parking_id"],
+                    record["timestamp"],
+                    record["occupancy"],
+                    record["vacancy"]
+                )
+            )
+        
+        print("Occupancy data successfully inserted!")
     
+    except Exception as e:
+        print(f"An error occurred while inserting occupancy data: {e}")
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
 def main():
     folder_path = "/app/images"
     model = get_model()
@@ -133,11 +169,10 @@ def main():
 
             print(f"Processing folder: {folder_name} (Parking ID: {parking_id})")
             parking_data = detect_parking_folder(new_folder_path, parking_id, model)
-            print("Processed parking data:")
-            for entry in parking_data:
-                print(entry)
+            print("Processed parking data, Inserting into DB")
+            insert_data_to_db(parking_data)
+            print("Data inserted successfully.")
 
-    
 
 # Entry point
 if __name__ == "__main__":

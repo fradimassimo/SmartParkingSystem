@@ -108,7 +108,6 @@ def get_predictions(zone, parking_type, daily = False, start_time = None, festiv
         return forecast_df  # pandas dataframe with forecasted occupancy for the next week
 
 
-
 """
 def main():
     ma = get_prediction_for_week(zone = "NORD", parking_type = "street")

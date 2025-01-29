@@ -106,11 +106,12 @@ def get_garage_structure():
 
         data_as_dict = []
 
-        # Itera sulle righe del DataFrame e crea un dizionario per ogni riga
+        # iterate on the dataframe and create a dictionary for each row
         for _, row in df.iterrows():
-            row_dict = row.to_dict()  # Crea un dizionario dalla riga
-            # Aggiungi il dizionario alla lista
+            row_dict = row.to_dict() 
             data_as_dict.append(row_dict)
+
+        print("Data fetched successfully.")
 
         return data_as_dict
     except Exception as e:

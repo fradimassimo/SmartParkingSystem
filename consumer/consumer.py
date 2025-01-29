@@ -43,7 +43,7 @@ def on_message(client, userdata, msg):
 
         current_time = datetime.now()
         # Controlla se sono passati almeno 15 minuti dall'ultimo salvataggio
-        if (current_time - last_save_time) < timedelta(minutes=2):
+        if (current_time - last_save_time) < timedelta(minutes=15):
             logger.info("Skipping message as 15 minutes haven't passed yet.")
             return
 

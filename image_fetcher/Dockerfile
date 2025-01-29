@@ -11,5 +11,3 @@ COPY ./parking_detection/utils /app/parking_detection/utils
 RUN pip install --no-cache-dir -r requirements.txt
 
 ENV PYTHONPATH=/app
-
-CMD ["python", "parking_occupancy.py"]

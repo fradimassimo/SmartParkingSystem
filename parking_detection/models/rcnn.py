@@ -1,5 +1,5 @@
 from torch import nn
-from torchvision.models import resnet50
+from torchvision.models import resnet50, ResNet50_Weights
 from torchvision.ops.misc import FrozenBatchNorm2d
 
 from .utils import pooling
@@ -14,7 +14,7 @@ class RCNN(nn.Module):
     def __init__(self, roi_res=100, pooling_type='square'):
         super().__init__()
         # load backbone
-        self.backbone = resnet50(pretrained=True, norm_layer=FrozenBatchNorm2d)
+        self.backbone = resnet50(weights = ResNet50_Weights.DEFAULT, norm_layer=FrozenBatchNorm2d)
         self.backbone.fc = nn.Linear(in_features=2048, out_features=2)
         
         # freeze bottom layers

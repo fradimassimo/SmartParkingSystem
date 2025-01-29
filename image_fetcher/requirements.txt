@@ -2,3 +2,4 @@ pymongo
 torch
 torchvision
 requests
+psycopg2-binary

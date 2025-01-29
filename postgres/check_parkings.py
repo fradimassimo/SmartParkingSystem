@@ -98,5 +98,3 @@ pg_cur.close()
 pg_conn.close()
 
 print("Parking data successfully transferred from MongoDB to PostgreSQL.")
-
-
