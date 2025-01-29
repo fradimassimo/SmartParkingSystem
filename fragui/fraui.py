@@ -13,7 +13,7 @@ app = Flask(__name__)
 mqtt_broker = 'mosquitto'
 mqtt_topic_zone = 'zone/select'
 mqtt_topic_alerts = 'closed_parking/data' #(20 sec published)
-mqtt_forecast_request = "forecast/request"
+#mqtt_forecast_request = "forecast/request"
 mqtt_topic_forecast_response = "forecast/response"
 #sulla base della request response manda json con previsioni dati street per quella zona
 #prendi solo le prime 24
@@ -21,6 +21,7 @@ mqtt_topic_forecast_response = "forecast/response"
 
 client = mqtt.Client()
 client.connect(mqtt_broker, 1883, 60)
+
 
 ####################################### closed_parkings #####################################################à
 closed_data = []
@@ -95,6 +96,31 @@ client.subscribe(mqtt_topic_alerts)  # Sottoscrive al topic 'closed_parking/data
 
 ##################################### closed_parkings ########################################################
 
+###################################### forecast ###############################################################
+
+forecast_data = []
+def on_forecast_message(client, userdata, msg):
+    global forecast_data
+    forecast_data = []
+    try:
+        forecast_data = json.loads(msg.payload)
+        print(f"Ricevute previsioni: {forecast_data}")
+    except json.JSONDecodeError as e:
+        print(f"Errore nella ricezione delle previsioni: {e}")
+
+
+
+def get_24h_forecast():
+    first_24h = forecast_data[:24]  # Prende prime 24h di forecast data
+    return first_24h
+
+
+client.message_callback_add(mqtt_topic_zone, on_forecast_message)
+client.message_callback_add(mqtt_topic_forecast_response, on_forecast_message)
+client.subscribe(mqtt_topic_forecast_response)
+
+##################################### forecast ###########################################################à
+
 
 def mqtt_loop():
     client.loop_forever()
@@ -123,7 +149,8 @@ def select_zone():
 
 @app.route('/zone_selected/<zone>')
 def zone_selected(zone):
-    filtered_data = get_data_for_zone(zone)  # Ottieni i parcheggi filtrati per zona
+    filtered_data = get_data_for_zone(zone) # Ottieni i parcheggi filtrati per zona
+    filtred_forecast =  get_24h_forecast() # Ottieni le prime 24
 
     return render_template('zone_selected.html', zone=zone, parkings=filtered_data)
 

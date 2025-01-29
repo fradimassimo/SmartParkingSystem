@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Parking Data - Zone: {{ zone }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEJ4QJQG4KnFf9qfu2RkUq98lr6m1Xhw5vqfJ9yIj7wpzSe2A1hpXlNw43Rks" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Includiamo Chart.js -->
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -16,9 +17,8 @@
             text-align: center;
             margin-bottom: 30px;
         }
-        table {
+        .table {
             width: 100%;
-            margin-top: 20px;
         }
         th, td {
             padding: 10px;
@@ -31,6 +31,9 @@
         tr:hover {
             background-color: #f1c40f;
             cursor: pointer;
+        }
+        .forecast-table td .forecast-table th {
+            text-align: left;
         }
         footer {
             text-align: center;
@@ -48,30 +51,81 @@
     <div class="container">
         <h1>Parking Data - Zone: {{ zone }}</h1>
 
-        <h3>Parking Details</h3>
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Parking Name</th>
-                    <th>Occupancy</th>
-                    <th>Availability</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for parking in parkings %}
-                    <tr>
-                        <td>{{ parking['name'] }}</td>
-                        <td>{{ parking['occupancy'] }}</td>
-                        <td>{{ parking['vacancy'] }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="row">
+
+            <div class="col-md-6">
+                <h3>24h Forecast</h3>
+                <!-- Canvas per il grafico -->
+                <canvas id="forecastChart" width="400" height="400"></canvas>
+            </div>
+
+            <div class="col-md-6">
+                <h3>Parking Details</h3>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Parking Name</th>
+                            <th>Occupancy</th>
+                            <th>Availability</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for parking in parkings %}
+                            <tr>
+                                <td>{{ parking['name'] }}</td>
+                                <td>{{ parking['occupancy'] }}</td>
+                                <td>{{ parking['vacancy'] }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <footer>
         <a href="{{ url_for('index') }}" style="color: white;">Back to Home</a>
     </footer>
 
+     <script>
+        // Estrazione dei dati per il grafico dalle variabili passate dal backend Flask
+        var forecastData = {{ filtered_forecast | tojson }};
+
+        // Estrazione dei timestamp e delle occupancy previste
+        var timestamps = forecastData.map(function(item) {
+            return item.timestamp; // Aggiungi il timestamp all'array
+        });
+
+        var forecastedOccupancy = forecastData.map(function(item) {
+            return item.forecasted_occupancy; // Aggiungi la previsione dell'occupazione all'array
+        });
+
+        // Configurazione del grafico
+        var ctx = document.getElementById('forecastChart').getContext('2d');
+        var forecastChart = new Chart(ctx, {
+            type: 'bar', // Tipo di grafico: istogramma
+            data: {
+                labels: timestamps, // Asse X: timestamp
+                datasets: [{
+                    label: 'Forecasted Occupancy (%)',
+                    data: forecastedOccupancy, // Asse Y: occupazione prevista
+                    backgroundColor: '#3498db', // Colore delle barre
+                    borderColor: '#2980b9', // Colore del bordo delle barre
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true, // L'asse Y inizia da 0
+                        ticks: {
+                            stepSize: 10 // Ogni tick sull'asse Y aumenta di 10
+                        }
+                    }
+                }
+            }
+        });
+    </script>
 </body>
 </html>

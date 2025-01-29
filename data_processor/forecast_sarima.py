@@ -7,7 +7,8 @@ import paho.mqtt.client as mqtt
 
 # MQTT Broker Configuration
 BROKER_ADDRESS = "mosquitto"  # Replace with your broker's IP or hostname
-REQUEST_TOPIC = "forecast/request"
+#REQUEST_TOPIC = "forecast/request"
+ZONE_TOPIC = "zone/select"
 RESPONSE_TOPIC = "forecast/response"
 
 # Define the MQTT client
@@ -16,21 +17,28 @@ client = mqtt.Client()
 def on_connect(client, userdata, flags, rc):
     print(f"Connected to MQTT Broker with result code {rc}")
     # Subscribe to the request topic
-    client.subscribe(REQUEST_TOPIC)
+    #client.subscribe(REQUEST_TOPIC)
+    client.subscribe(ZONE_TOPIC)
 
 def on_message(client, userdata, msg):
     try:
         print(f"Received message on {msg.topic}: {msg.payload}")
         
         # Parse the incoming message
-        payload = json.loads(msg.payload.decode())
-        zone = payload.get("zone")
-        parking_type = payload.get("parking_type")
+        zone = msg.payload.decode().strip()  # Estraggo la zona
+        parking_type = "street"
 
-        forecast_df = get_predictions(zone, parking_type)
-        forecast_json = forecast_df.to_json(orient="records", date_format="iso")
+        # payload = json.loads(msg.payload.decode())
+        # zone = payload.get("zone")
+        # parking_type = payload.get("parking_type")
+        if zone:
+            forecast_df = get_predictions(zone, parking_type)
+            forecast_json = forecast_df.to_json(orient="records", date_format="iso")
 
-        client.publish(RESPONSE_TOPIC, forecast_json)
+            client.publish(RESPONSE_TOPIC, forecast_json)
+            print(f"Sent forecast for zone {zone}")
+        else:
+            print("Received empty zone, ignoring message.")
         print("Forecast sent successfully.")
     
     except Exception as e:
