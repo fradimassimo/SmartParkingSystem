@@ -9,13 +9,20 @@ app = Flask(__name__)
 
 # MQTT setup
 
+
 mqtt_broker = 'mosquitto'
 mqtt_topic_zone = 'zone/select'
 mqtt_topic_alerts = 'closed_parking/data' #(20 sec published)
+mqtt_forecast_request = "forecast/request"
+mqtt_topic_forecast_response = "forecast/response"
+#sulla base della request response manda json con previsioni dati street per quella zona
+#prendi solo le prime 24
+#ogni dict timestamp (keys sono timestamp e forecasted_occupancy)
 
 client = mqtt.Client()
 client.connect(mqtt_broker, 1883, 60)
 
+####################################### closed_parkings #####################################################à
 closed_data = []
 selected_zone = None  # Variabile globale per la zona selezionata
 # Funzione per gestire la selezione della zona da parte dell'utente
@@ -26,6 +33,7 @@ def on_zone_message(client, userdata, msg):
         zone_requested = msg.payload.decode()  # Decodifica il messaggio ricevuto
         selected_zone = zone_requested  # Salva la zona selezionata
 
+        client.publish(mqtt_topic_zone, zone_requested) #pubblica su topic damiano la selezione
         print(f"Zona selezionata: {selected_zone}")
     except Exception as e:
         print(f"Errore nella gestione della zona: {e}")
@@ -84,6 +92,9 @@ client.message_callback_add(mqtt_topic_alerts, on_closed_message)  # Callback pe
 # Sottoscrizione ai topic
 client.subscribe(mqtt_topic_zone)  # Sottoscrive al topic 'zone/select' per la selezione della zona
 client.subscribe(mqtt_topic_alerts)  # Sottoscrive al topic 'closed_parking/data' per i parcheggi chiusi
+
+##################################### closed_parkings ########################################################
+
 
 def mqtt_loop():
     client.loop_forever()
