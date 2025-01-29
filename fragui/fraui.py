@@ -115,7 +115,7 @@ def get_24h_forecast(forecast):
     return first_24h
 
 
-client.message_callback_add(mqtt_topic_zone, on_forecast_message)
+
 client.message_callback_add(mqtt_topic_forecast_response, on_forecast_message)
 client.subscribe(mqtt_topic_forecast_response)
 
@@ -148,14 +148,15 @@ def select_zone():
 
 
 @app.route('/zone_selected/<zone>')
-def zone_selected(zone, forecast_data):
+def zone_selected(zone):
     filtered_data = get_data_for_zone(zone) # Ottieni i parcheggi filtrati per zona
+    print(f"Filtered Parkings: {filtered_data}")
     filtered_forecast =  get_24h_forecast(forecast_data) # Ottieni le prime 24
-
+    print(f"Filtered Forecast: {filtered_forecast}")
     return render_template('zone_selected.html',
                            zone=zone,
                            parkings=filtered_data,
-                           filtered_forecast=filtered_forecast)
+                           forecasts=filtered_forecast)
 
 
 
