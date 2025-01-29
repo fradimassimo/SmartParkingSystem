@@ -150,7 +150,9 @@ def select_zone():
 @app.route('/zone_selected/<zone>')
 def zone_selected(zone):
     filtered_data = get_data_for_zone(zone) # Ottieni i parcheggi filtrati per zona
+    print(filtered_data)
     filtred_forecast =  get_24h_forecast() # Ottieni le prime 24
+    print(filtred_forecast)
 
     return render_template('zone_selected.html', zone=zone, parkings=filtered_data)
 
