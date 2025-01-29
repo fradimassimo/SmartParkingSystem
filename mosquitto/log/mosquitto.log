@@ -2424,3 +2424,37 @@
 1738158471: Client auto-AEB93EF7-BCFC-3819-0CE3-B97B5BAF87E0 closed its connection.
 1738158471: mosquitto version 2.0.20 terminating
 1738158471: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1738158502: mosquitto version 2.0.20 starting
+1738158502: Config loaded from /mosquitto/config/mosquitto.conf.
+1738158502: Opening ipv4 listen socket on port 1883.
+1738158502: mosquitto version 2.0.20 running
+1738158502: New connection from 172.19.0.7:43637 on port 1883.
+1738158502: New client connected from 172.19.0.7:43637 as auto-38574448-B969-E509-A2D0-26F97A8E6D5B (p2, c1, k60).
+1738158502: New connection from 172.19.0.9:60177 on port 1883.
+1738158502: New client connected from 172.19.0.9:60177 as auto-CC680179-3B16-D02A-E263-687AA567F0F0 (p2, c1, k60).
+1738158503: New connection from 172.19.0.12:49369 on port 1883.
+1738158503: New client connected from 172.19.0.12:49369 as auto-CF0D29BE-9173-52C4-CF86-86E7CEBD3D8E (p2, c1, k60).
+1738158503: New connection from 172.19.0.12:34559 on port 1883.
+1738158503: New client connected from 172.19.0.12:34559 as auto-972052F4-B1A9-065D-3DF5-2BDB8602894F (p2, c1, k60).
+1738158504: New connection from 172.19.0.13:39315 on port 1883.
+1738158504: New client connected from 172.19.0.13:39315 as auto-47AD1A30-5FD4-E3BA-A36A-40161FDC88C5 (p2, c1, k60).
+1738158703: Client auto-972052F4-B1A9-065D-3DF5-2BDB8602894F closed its connection.
+1738158703: Client auto-47AD1A30-5FD4-E3BA-A36A-40161FDC88C5 closed its connection.
+1738158713: Client auto-CC680179-3B16-D02A-E263-687AA567F0F0 closed its connection.
+1738158713: Client auto-CF0D29BE-9173-52C4-CF86-86E7CEBD3D8E closed its connection.
+1738158713: mosquitto version 2.0.20 terminating
+1738158713: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1738158719: mosquitto version 2.0.20 starting
+1738158719: Config loaded from /mosquitto/config/mosquitto.conf.
+1738158719: Opening ipv4 listen socket on port 1883.
+1738158719: mosquitto version 2.0.20 running
+1738158719: New connection from 172.19.0.11:48387 on port 1883.
+1738158719: New client connected from 172.19.0.11:48387 as auto-ADADC2DD-8025-BCB5-9AE4-00E18A14F8FC (p2, c1, k60).
+1738158719: New connection from 172.19.0.9:46187 on port 1883.
+1738158719: New client connected from 172.19.0.9:46187 as auto-489C1D89-6341-23C1-CBAF-3A99FC7A4CB7 (p2, c1, k60).
+1738158720: New connection from 172.19.0.9:58451 on port 1883.
+1738158720: New client connected from 172.19.0.9:58451 as auto-3ED818DD-082D-4C2F-77F7-212051DFAEAF (p2, c1, k60).
+1738158720: New connection from 172.19.0.7:46645 on port 1883.
+1738158720: New client connected from 172.19.0.7:46645 as auto-5E367729-AAA6-F946-0F3D-19716069F71A (p2, c1, k60).
+1738158721: New connection from 172.19.0.6:38849 on port 1883.
+1738158721: New client connected from 172.19.0.6:38849 as auto-C93772A8-C763-2A71-079A-9E10A92609A7 (p2, c1, k60).

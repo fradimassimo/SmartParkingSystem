@@ -110,6 +110,10 @@ def get_garage_structure():
         # iterate on the dataframe and create a dictionary for each row
         for _, row in df.iterrows():
             row_dict = row.to_dict() 
+            row_dict["location"] = {
+                "latitude": row_dict["latitude"],
+                "longitude": row_dict["longitude"]
+            }
             data_as_dict.append(row_dict)
 
         print("Data fetched successfully.")
