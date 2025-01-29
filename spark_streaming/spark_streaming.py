@@ -99,6 +99,10 @@ def process_and_publish_data(tempo, lots, structure):
                     "device_id": spot["device_id"],
                     "parking_id": spot["parking_id"],
                     "metadata_time": current_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                    "location": {
+                        "latitude": spot["location"]["latitude"],
+                        "longitude": spot["location"]["longitude"]
+                    },
                     "payload_fields_park_flag": park_flag,
                     "payload_fields_battery_percent": battery_percent,
                     "payload_fields_low_voltage": "False",

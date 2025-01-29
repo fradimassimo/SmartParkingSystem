@@ -64,6 +64,7 @@ def merging(structure, aggregated_by_ids):
                     "parking_id": good_lot["parking_id"],
                     "name": good_lot["name"],
                     "metadata_time": lot["metadata_time"],
+                    "location": good_lot["location"],
                     "vacancy": lot["free"],
                     "occupancy": lot["occupied"],
                 }
