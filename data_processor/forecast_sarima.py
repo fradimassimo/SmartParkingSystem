@@ -67,7 +67,7 @@ def get_predictions(zone, parking_type, daily = False, start_time = None, festiv
     except Exception as e:
         print(f"Error loading model, be sure to train it first: {e}")
 
-    n_pred = 24 if daily else 168
+    n_pred = 24 if daily else 24
 
     new_records = []
     for i in range(n_pred):
@@ -109,22 +109,22 @@ def get_predictions(zone, parking_type, daily = False, start_time = None, festiv
         return mean_occupancy
     else:
         forecast_df = pd.DataFrame({
-            "timestamp": pd.date_range(start=start_time, periods=168, freq="h"),
+            "timestamp": pd.date_range(start=start_time, periods=24, freq="h"),
             "forecasted_occupancy": forecast
         })
 
         return forecast_df  # pandas dataframe with forecasted occupancy for the next week
 
-
-"""
+# ONLY FOR DEBUGGING
 def main():
-    ma = get_prediction_for_week(zone = "NORD", parking_type = "street")
+    ma = get_predictions(zone = "NORD", parking_type = "street")
     print(ma.head())
     print(ma.tail())
-"""
+
 
 if __name__ == "__main__":
     # Connect the client
+    main()
     client.on_connect = on_connect
     client.on_message = on_message
     client.connect(BROKER_ADDRESS, 1883, 60)

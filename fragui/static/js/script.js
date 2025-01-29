@@ -1,4 +1,6 @@
+// Funzione per ottenere i dati e aggiornarli nella pagina
 function fetchData() {
+    // Prima, recuperiamo i dati generali
     fetch('/data')
         .then(response => response.json())
         .then(data => {
@@ -10,6 +12,70 @@ function fetchData() {
             `;
         })
         .catch(error => console.error('Errore:', error));
+
+    // Poi, otteniamo i dati sui parcheggi e previsioni
+    fetch('/api/parking_data')
+        .then(response => response.json())
+        .then(data => {
+            // Aggiorna la tabella dei parcheggi con i dati ricevuti
+            const table = document.querySelector('.parking-table tbody');
+            table.innerHTML = '';  // Pulisce la tabella prima di aggiungere nuove righe
+
+            data.parking.forEach(parkingZone => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${parkingZone.name}</td>
+                    <td>${parkingZone.vacancy}</td>
+                    <td>${parkingZone.occupancy}</td>
+                `;
+                table.appendChild(row);
+            });
+
+            // Aggiorna l'istogramma con i dati delle previsioni
+            const affluenzaData = {
+                labels: data.forecast.map(entry => entry.timestamp),  // Ore del giorno
+                datasets: [{
+                    label: 'Previsione Occupazione',
+                    data: data.forecast.map(entry => entry.forecasted_occupancy),  // Occupazione prevista
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }]
+            };
+
+            const config = {
+                type: 'bar',
+                data: affluenzaData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Previsione di Occupazione dei Parcheggi'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Orari del Giorno'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Numero di Parcheggi Occupati'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            };
+
+            const ctx = document.getElementById('parkingChart').getContext('2d');
+            new Chart(ctx, config);
+        })
+        .catch(error => console.error('Errore nel recupero dei dati dei parcheggi:', error));
 }
 
 // Inizializzazione della mappa con Leaflet
@@ -86,73 +152,5 @@ function showParkingInfo(zone) {
     newWindow.document.close();
 }
 
-
-
-
-document.addEventListener("DOMContentLoaded", function() {
-    // Chiamata AJAX per ottenere i dati del parcheggio
-    fetch('/api/parking_data')
-        .then(response => response.json())
-        .then(data => {
-            // Aggiorna la tabella dei parcheggi con i dati ricevuti
-            const table = document.querySelector('.parking-table tbody');
-            table.innerHTML = `
-                <tr>
-                    <td>${data.covered}</td>
-                    <td>${data.free}</td>
-                    <td>${data.occupied}</td>
-                </tr>
-            `;
-
-            // Aggiorna l'istogramma con i dati dell'affluenza
-            const affluenzaData = {
-                labels: data.hours,
-                datasets: [{
-                    label: 'Parcheggi Occupati',
-                    data: data.occupiedData,
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    borderWidth: 1
-                },
-                {
-                    label: 'Parcheggi Liberi',
-                    data: data.freeData,
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                }]
-            };
-
-            const config = {
-                type: 'bar',
-                data: affluenzaData,
-                options: {
-                    responsive: true,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Affluenza Oraria dei Parcheggi'
-                        }
-                    },
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Ore del Giorno'
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Numero di Parcheggi'
-                            },
-                            beginAtZero: true
-                        }
-                    }
-                }
-            };
-
-            const ctx = document.getElementById('parkingChart').getContext('2d');
-            new Chart(ctx, config);
-        });
-});
+// Attiviamo la funzione `fetchData` al caricamento della pagina
+document.addEventListener("DOMContentLoaded", fetchData);
