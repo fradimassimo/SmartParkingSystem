@@ -2,7 +2,7 @@
 set -e  # Exit immediately if a command exits with a non-zero status
 
 echo "Checking if parking data exists in PostgreSQL..."
-DB_CHECK=$(python -c "
+DB_CHECK=$(python3 -c "
 import psycopg2
 conn = psycopg2.connect(dbname='smart-parking', user='admin', password='root', host='postgres', port='5432')
 cur = conn.cursor()
@@ -14,7 +14,7 @@ print(count)
 
 if [ "$DB_CHECK" -eq "0" ]; then
     echo "No parking data found. Running garage_parking.py..."
-    python garage_parking.py
+    python3 garage_parking.py
 else
     echo "Parking data already exists. Skipping database population."
 fi

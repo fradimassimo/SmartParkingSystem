@@ -138,8 +138,8 @@ if __name__ == "__main__":
             time.sleep(retry_timeout)
             continue
 
-    sensors =  create_parking_dataset()
     structure = get_garage_structure()
+    sensors =  create_parking_dataset(structure)
     
     if not sensors or not str:
         logger.error("Critical files are missing or invalid. Exiting.")

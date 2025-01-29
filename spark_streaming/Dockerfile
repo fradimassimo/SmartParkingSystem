@@ -1,25 +1,33 @@
-FROM python:3.10-slim  
+# Use OpenJDK 17 base image to ensure correct Java setup
+FROM openjdk:17-slim
 
-WORKDIR /app  
+# Install Python and required dependencies
+RUN apt-get update && apt-get install -y \
+    python3-pip \
+    python3-dev \
+    curl \
+    procps \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install Java (for Spark) and `ps`
-RUN apt-get update && apt-get install -y openjdk-11-jdk procps && rm -rf /var/lib/apt/lists/*  
+# Set JAVA_HOME and PATH correctly
+ENV JAVA_HOME=/usr/local/openjdk-17
+ENV PATH=$JAVA_HOME/bin:$PATH
 
-ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64  
-ENV PATH="${JAVA_HOME}/bin:${PATH}"  
+# Set working directory
+WORKDIR /app
 
-# Copy Spark dependencies (optional, if not using external Spark)
-RUN wget -qO- https://dlcdn.apache.org/spark/spark-3.3.1/spark-3.3.1-bin-hadoop3.tgz | tar xvz -C /opt/
-ENV SPARK_HOME=/opt/spark  
-ENV PATH="${SPARK_HOME}/bin:${SPARK_HOME}/sbin:${PATH}"  
+# Copy Python dependencies file and install Python dependencies
+COPY requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt
 
-COPY requirements.txt .  
-RUN pip install --no-cache-dir -r requirements.txt  
+# Copy other project files
+COPY utils.py .
+COPY garage_parking.py .
+COPY spark_streaming.py .
+COPY entrypoint.sh .
 
-COPY entrypoint.sh .  
-COPY garage_parking.py .  
-COPY spark_streaming.py .  
+# Ensure the entrypoint script is executable
+RUN chmod +x entrypoint.sh
 
-RUN chmod +x entrypoint.sh  
-
-CMD ["/bin/bash", "/app/entrypoint.sh"]
+# Set entrypoint for the container
+ENTRYPOINT ["/app/entrypoint.sh"]
