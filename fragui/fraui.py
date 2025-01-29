@@ -107,11 +107,11 @@ def on_forecast_message(client, userdata, msg):
         print(f"Ricevute previsioni: {forecast_data}")
     except json.JSONDecodeError as e:
         print(f"Errore nella ricezione delle previsioni: {e}")
+    return forecast_data
 
 
-
-def get_24h_forecast():
-    first_24h = forecast_data[:24]  # Prende prime 24h di forecast data
+def get_24h_forecast(forecast):
+    first_24h = forecast[:24]  # Prende prime 24h di forecast data
     return first_24h
 
 
@@ -148,13 +148,14 @@ def select_zone():
 
 
 @app.route('/zone_selected/<zone>')
-def zone_selected(zone):
+def zone_selected(zone, forecast_data):
     filtered_data = get_data_for_zone(zone) # Ottieni i parcheggi filtrati per zona
-    print(filtered_data)
-    filtred_forecast =  get_24h_forecast() # Ottieni le prime 24
-    print(filtred_forecast)
+    filtered_forecast =  get_24h_forecast(forecast_data) # Ottieni le prime 24
 
-    return render_template('zone_selected.html', zone=zone, parkings=filtered_data)
+    return render_template('zone_selected.html',
+                           zone=zone,
+                           parkings=filtered_data,
+                           filtered_forecast=filtered_forecast)
 
 
 
