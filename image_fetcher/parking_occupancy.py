@@ -21,8 +21,8 @@ def get_model():
     
     if not os.path.exists(weights_path):
         r = requests.get('https://pub-e8bbdcbe8f6243b2a9933704a9b1d8bc.r2.dev/parking%2FRCNN_128_square_gopro.pt')  
-    with open(weights_path, 'wb') as f:
-        f.write(r.content)
+        with open(weights_path, 'wb') as f:
+            f.write(r.content)
 
     try:
         model.load_state_dict(torch.load(weights_path, map_location='cpu', weights_only=True))
