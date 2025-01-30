@@ -18,8 +18,6 @@ DB_CONFIG = {
     "host": "postgres",
     "port": "5432"
 }
-
-# Variabile per tracciare l'ultimo messaggio salvato
 last_save_time = datetime.min
 
 
@@ -31,6 +29,8 @@ def on_connect(client, userdata, flags, rc):
 
 
 def on_message(client, userdata, msg):
+    """On message, check if 15 minutes have passed since the last save, then save the data."""
+
     global last_save_time
 
     try:
@@ -42,12 +42,12 @@ def on_message(client, userdata, msg):
             return
 
         current_time = datetime.now()
-        # Controlla se sono passati almeno 15 minuti dall'ultimo salvataggio
+        # Check if 15 minutes have passed since the last save
         if (current_time - last_save_time) < timedelta(minutes=15):
             logger.info("Skipping message as 15 minutes haven't passed yet.")
             return
 
-        # Se sono passati 15 minuti, salva i dati nel database
+        #  if htey have passed, save the data
         db_conn = userdata["db_conn"]
         insert_query = """
             INSERT INTO occupancy_data (parking_id, timestamp, occupancy, vacancy)
@@ -94,13 +94,13 @@ if __name__ == "__main__":
     client.on_connect = on_connect
     client.on_message = on_message
 
-    # Passa la connessione al database come userdata al client MQTT
     client.user_data_set({"db_conn": db_conn})
 
     try:
         client.connect(mqtt_broker, 1883, 60)
+        # Subscribe to closed_parking/data topic
         client.subscribe(mqtt_topic)
         logger.info(f"Subscribed to topic: {mqtt_topic}")
-        client.loop_forever()  # Mantiene la connessione MQTT attiva
+        client.loop_forever()
     except Exception as e:
         logger.error(f"Error in MQTT connection or loop: {e}")

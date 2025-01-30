@@ -7,10 +7,22 @@ from pymongo import MongoClient
 import time
 from datetime import datetime
 import psycopg2
+import requests
+from sqlalchemy import create_engine
+import pandas as pd
+import os
+import shutil
 
 def get_model():
+    """Loads the model weights"""
+
     model = RCNN()
     weights_path = 'weights.pt'
+    
+    if not os.path.exists(weights_path):
+        r = requests.get('https://pub-e8bbdcbe8f6243b2a9933704a9b1d8bc.r2.dev/parking%2FRCNN_128_square_gopro.pt')  
+    with open(weights_path, 'wb') as f:
+        f.write(r.content)
 
     try:
         model.load_state_dict(torch.load(weights_path, map_location='cpu', weights_only=True))
@@ -21,6 +33,7 @@ def get_model():
         return None
 
 def standardize_bboxes(segmentation, image_width, image_height):
+    """Standardize bounding boxes to the range [0, 1], the range that the CNN requires."""
     bboxes = []
     for bbox in segmentation:
         standardized_bbox = [(x / image_width, y / image_height) for x, y in zip(bbox[0][0::2], bbox[0][1::2])]
@@ -32,6 +45,7 @@ def standardize_bboxes(segmentation, image_width, image_height):
     return bboxes_tensor
 
 def detect_parking_image(image_path, model, parking_id):
+    """ Detect parking occupancy in a single image and return the results as a list. """
     image = torchvision.io.read_image(image_path)
 
     # here goes the import
@@ -52,6 +66,7 @@ def detect_parking_image(image_path, model, parking_id):
     return [occupied_count, vacant_count]
 
 def detect_parking_folder(folder_path, parking_id, model):
+    """ Detect parking occupancy in a folder of images and return the results as a list of dictionaries. """
     parking_counts = []
 
     for root, _, files in os.walk(folder_path):
@@ -121,59 +136,67 @@ def get_image_timestamp(image_path):
 
     return date_creation
 
-def insert_data_to_db(parking_data):
-    """Insert parking data into the occupancy_data table in the PostgreSQL database."""
 
-    conn = psycopg2.connect(
-        dbname="smart-parking",
-        user="admin",
-        password="root",
-        host="postgres",
-        port="5432"
-    )
-    cur = conn.cursor()
+def insert_data_to_db(parking_data):
+    """Insert parking data on PostreSQL using SQLAlchemy."""
+    
+    engine = create_engine("postgresql://admin:root@postgres:5432/smart-parking")
 
     try:
-        for record in parking_data:
-            cur.execute(
-                """
-                INSERT INTO occupancy_data (parking_id, timestamp, occupancy, vacancy)
-                VALUES (%s, %s, %s, %s)
-                """,
-                (
-                    record["parking_id"],
-                    record["timestamp"],
-                    record["occupancy"],
-                    record["vacancy"]
-                )
-            )
-        
-        print("Occupancy data successfully inserted!")
+        df = pd.DataFrame(parking_data)
+        df.to_sql('occupancy_data', con=engine, if_exists='append', index=False, method='multi')
     
     except Exception as e:
         print(f"An error occurred while inserting occupancy data: {e}")
+    
+    finally:
+        engine.dispose() 
 
-    conn.commit()
-    cur.close()
-    conn.close()
+def delete_processed_images(folder_path):
+    """Delete all files in the specified folder while keeping the directory structure"""
+
+    for filename in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, filename)
+        
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+
+        except Exception as e:
+            print(f"Failed to delete {file_path}. Reason: {e}")
+
 
 def main():
     folder_path = "/app/images"
     model = get_model()
+    processed_folders = []
 
-    for folder_name in os.listdir(folder_path):
-        # check every folder (should be in the name parkingXXX, with XXX being the parking id)
-        if folder_name.startswith("parking") and folder_name[7:].isdigit():
-            parking_id = int(folder_name[7:]) 
-            new_folder_path = os.path.join(folder_path, folder_name)
+    try:
+        for folder_name in os.listdir(folder_path):
+            if folder_name.startswith("parking") and folder_name[7:].isdigit():
+                parking_id = int(folder_name[7:]) 
+                new_folder_path = os.path.join(folder_path, folder_name)
+                processed_folders.append(new_folder_path)
 
-            print(f"Processing folder: {folder_name} (Parking ID: {parking_id})")
-            parking_data = detect_parking_folder(new_folder_path, parking_id, model)
-            print("Processed parking data, Inserting into DB")
-            insert_data_to_db(parking_data)
-            print("Data inserted successfully.")
+                print(f"Processing folder: {folder_name} (Parking ID: {parking_id})")
+                parking_data = detect_parking_folder(new_folder_path, parking_id, model)
+                print("Processed parking data, Inserting into DB")
+                insert_data_to_db(parking_data)
+                print("Data inserted successfully.")
 
+        """
+        for folder in processed_folders:
+            print(f"Cleaning up: {folder}")
+            delete_processed_images(folder)
+            print(f"Successfully deleted images in {folder}")
+        """
 
-# Entry point
+    except Exception as e:
+        print(f"Operation failed: {e}")
+        print("No images were deleted due to processing errors")
+        raise 
+
 if __name__ == "__main__":
     main()

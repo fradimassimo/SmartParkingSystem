@@ -3,3 +3,6 @@ torch
 torchvision
 requests
 psycopg2-binary
+requests
+sqlalchemy
+pandas

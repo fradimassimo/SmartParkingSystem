@@ -152,5 +152,5 @@ if __name__ == "__main__":
     while True:
         t = datetime.now(timezone.utc)
         process_and_publish_data(t, sensors, structure)
-        logger.info("Sleeping for 20 seconds")
-        time.sleep(20)
+        logger.info("Sleeping for 5 seconds")
+        time.sleep(5)

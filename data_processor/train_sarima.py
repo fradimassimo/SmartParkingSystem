@@ -7,8 +7,9 @@ import sys
 import utils
 
 def train_model(start_time=datetime.now(), end_time=None, festive_dates=None):
+    """Train a SARIMA model on data from previous weeks from all entries to forecast parking occupancy."""
     if end_time is None:
-        end_time = start_time - timedelta(days=28)
+        end_time = start_time - timedelta(days=14)
     elif end_time > start_time:
         raise ValueError("End time must be before start time")
     
@@ -26,7 +27,6 @@ def train_model(start_time=datetime.now(), end_time=None, festive_dates=None):
             FROM occupancy_data o
             JOIN parkings p ON o.parking_id = p.parking_id
             WHERE o.timestamp BETWEEN %(end_time)s AND %(start_time)s
-            AND o.parking_id IN ('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', 'C001')
         """
         print("Fetching data from the database...")
         df = pd.read_sql(query, engine, params={"end_time": end_time, "start_time": start_time})
@@ -109,7 +109,7 @@ def train_model(start_time=datetime.now(), end_time=None, festive_dates=None):
         print(f"Error saving model: {e}", file=sys.stderr)
 
 def main():
-    # train_model()
+    train_model()
 
     print("Updating parking prices...")
     utils.update_prices()

@@ -1,6 +1,11 @@
 import random
 from datetime import datetime, timedelta
 import psycopg2
+from sqlalchemy import create_engine, Table, Column, Integer, String, DateTime, MetaData
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.orm import sessionmaker
+from datetime import datetime, timedelta
+import pandas as pd
 
 def generate_coordinates_within_bounds(bounds, num_coordinates):
     """ bounds should be a tuple of tuples ((lat_min, lat_max), (lon_min, lon_max)) or a vector of tuples,
@@ -67,56 +72,42 @@ def create_closed_parking(bounds, num_locations):
     return parking_lots
 
 
-# load it into PostgreSQL
-conn = psycopg2.connect(
-    dbname="smart-parking",
-    user="admin",
-    password="root",
-    host="postgres",
-    port="5432"
+DATABASE_URL = "postgresql://admin:root@postgres:5432/smart-parking"
+engine = create_engine(DATABASE_URL)
+
+metadata = MetaData()
+occupancy_data_table = Table(
+    "occupancy_data", metadata,
+    Column("parking_id", String, primary_key=True),
+    Column("timestamp", DateTime, primary_key=True),
+    Column("occupancy", Integer),
+    Column("vacancy", Integer),
 )
-cur = conn.cursor()
 
+Session = sessionmaker(bind=engine)
+session = Session()
 
-# generate fake occupancy data
 start_time = datetime(2025, 1, 30, 23, 45)
 end_time = datetime(2025, 1, 2, 0, 0)
 time_interval = timedelta(minutes=15)
 
-# Exclude these parking IDs (they are generated from "actual" data)
 excluded_ids = {1, 3, 7, 8}
 parking_ids = [i for i in range(1, 121) if i not in excluded_ids]
-garage_ids = [f"C{i:03d}" for i in range(1,16)]
-parking_ids = parking_ids + garage_ids
+garage_ids = [f"C{i:03d}" for i in range(1, 16)]
+parking_ids += garage_ids
 
 occupancy_data = generate_fake_parking_data(start_time, end_time, time_interval, parking_ids)
 
+df = pd.DataFrame(occupancy_data)
 
-# Insert occupancy data
 try:
-    for record in occupancy_data:
-        cur.execute(
-            """
-            INSERT INTO occupancy_data (parking_id, timestamp, occupancy, vacancy)
-            VALUES (%s, %s, %s, %s)
-            """,
-            (
-                record["parking_id"],
-                record["timestamp"],
-                record["occupancy"],
-                record["vacancy"]
-            )
-        )
-    
+    session.bulk_insert_mappings(occupancy_data_table, df.to_dict(orient="records"))
+    session.commit()
     print("Occupancy data successfully inserted!")
-    
+
 except Exception as e:
+    session.rollback()
     print(f"An error occurred while inserting occupancy data: {e}")
 
-conn.commit()
-cur.close()
-conn.close()
-
-
-
-
+finally:
+    session.close()

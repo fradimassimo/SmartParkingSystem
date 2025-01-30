@@ -17,5 +17,3 @@ RUN crontab /etc/cron.d/parkings_cron
 
 # also run check_parkings.py immediately when the container starts
 CMD ["sh", "-c", "python /app/check_parkings.py && cron -f"]
-
-
