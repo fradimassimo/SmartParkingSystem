@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Smart Parking System</title>
+    <link rel="icon" href="/static/LogoCarP.jpeg" type="image/jpeg">
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Bootstrap, Leaflet, Google Fonts -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Roboto', sans-serif; }
+        header { position: fixed; top: 0; width: 100%; background-color: #f8f9fa; padding: 10px 0; z-index: 1000; display: flex; justify-content: center; }
+        h1 { font-size: 24px; margin: 0; }
+        .logo { position: fixed; top: 10px; left: 10px; z-index: 1000; }
+        #instructions { text-align: center; margin-top: 80px; font-size: 18px; color: #555; }
+        .container { margin-top: 100px; }
+        #map { height: 600px; margin-top: 30px; }
+        footer { text-align: center; padding: 20px; background-color: #f1f1f1; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="logo">
+        <img src="/static/LogoCarP.jpeg" alt="Logo" width="50">
+    </div>
+
+    <header>
+        <h1>Smart Parking Management System</h1>
+    </header>
+
+    <div id="instructions">
+        <p><strong>Instructions:</strong> Select a zone on the map or use the drop-down menu.</p>
+    </div>
+
+    <!-- Drop-Down menu -->
+    <div class="container">
+        <form action="{{ url_for('select_zone') }}" method="POST" id="zone-form">
+            <div class="form-group">
+                <label for="zone">Seleziona una zona:</label>
+                <select name="zone" id="zone" class="form-control">
+                    <option value="NORD">Trento Nord</option>
+                    <option value="SUD">Trento Sud</option>
+                    <option value="EST">Trento Est</option>
+                    <option value="OVEST">Trento Ovest</option>
+                    <option value="CENTRO">Centro Trento</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Seleziona Zona</button>
+        </form>
+    </div>
+
+    <!-- Map -->
+    <div id="map"></div>
+
+    <footer>
+        <p>&copy; 2025 Smart Parking Management System</p>
+    </footer>
+    <script>
+        function initMap() {
+            var lat = 46.0677;
+            var lon = 11.1216;
+
+            // Inizializza la mappa
+            var map = L.map('map').setView([lat, lon], 14.2);
+
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+
+            var parkingZones = {
+                'CENTRO': { lat: 46.065, lon: 11.1265 },
+                'NORD': { lat: 46.084, lon: 11.121 },
+                'OVEST': { lat: 46.073, lon: 11.119 },
+                'SUD': { lat: 46.055, lon: 11.13 },
+                'EST': { lat: 46.0666, lon: 11.155 }
+            };
+
+
+            for (var zone in parkingZones) {
+                let zoneData = parkingZones[zone];
+                let circle = L.circle([zoneData.lat, zoneData.lon], {
+                    color: 'blue',
+                    fillColor: '#3388ff',
+                    fillOpacity: 0.5,
+                    radius: 500
+                }).addTo(map);
+
+
+                (function(zone) {
+
+                    circle.on('click', function() {
+
+                        var form = document.createElement("form");
+                        form.method = "POST";
+                        form.action = "/select_zone";
+
+                        var input = document.createElement("input");
+                        input.type = "hidden";
+                        input.name = "zone";
+                        input.value = zone;
+                        form.appendChild(input);
+
+                        document.body.appendChild(form);
+                        form.submit();
+                    });
+
+
+                    circle.bindPopup("<b>" + zone + "</b><br>Clicca per selezionare");
+                    circle.bindTooltip(zone, { permanent: false, direction: 'top' }).openTooltip();
+                })(zone);
+            }
+        }
+
+        window.onload = initMap;
+    </script>
+
+</body>
+</html>
