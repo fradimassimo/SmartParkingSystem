@@ -15,8 +15,8 @@ Repository for the **Smart Parking Management System**, proposed solution for th
 - **Dynamic Pricing Mechanism**: Adjusts parking fees based on expected demand. 
 - **Web-Based User Interface**: Built using **Flask**, allowing users to select a zone and view parking availability. 
 
-![System Architecture](Page_1.png)
-![System Architecture](Page_2.png)
+![System Architecture](demo/Page_1.png)
+![System Architecture](demo/Page_2.png)
 
 ---
 
