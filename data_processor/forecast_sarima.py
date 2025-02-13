@@ -124,7 +124,7 @@ def main():
 
 if __name__ == "__main__":
     # Connect the client
-    main()
+    # main()
     client.on_connect = on_connect
     client.on_message = on_message
     client.connect(BROKER_ADDRESS, 1883, 60)

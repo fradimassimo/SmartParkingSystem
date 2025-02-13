@@ -1,5 +1,3 @@
-import tkinter as tk
-from ultralytics import solutions
 from pymongo import MongoClient
 import json
 
@@ -32,7 +30,7 @@ def insert_parking_and_annotations(parking_data, json_file):
         
         for i, segment in enumerate(segmentation_data):
             annotation = {
-                "annotation_id": i + 1,
+                "annotation_id": f"{parking_data['name']}_{i}",
                 "parking_id": parking_data["parking_id"],
                 "segmentation": segment["points"]
             }
@@ -71,7 +69,7 @@ if __name__ == "__main__":
     # Prompt user to enter new parking details and annotations from image
     new_parking = prompt_parking_details()
 
-    # code to run if a new parking is added, used to select all parkings, comment if annotations are already present
+    # code to run if a new parking is added, used to select all parkings, comment if annotations are already present:_
     # solutions.ParkingPtsSelection()
     # needs to run outside of the container
 
